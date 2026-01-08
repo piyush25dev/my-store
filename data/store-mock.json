@@ -1,0 +1,65 @@
+{
+  "username": "piyush",
+  "name": "Piyush's Digital Store",
+  "bio": "I create tools, templates & digital products for creators 🚀",
+  "avatar": "/avatar.png",
+  "socials": ["instagram", "twitter", "youtube"],
+  "products": [
+    {
+      "id": 1,
+      "name": "Notion Creator Kit",
+      "price": "₹799",
+      "type": "Digital",
+      "image": "/product-1.png"
+    },
+    {
+      "id": 2,
+      "name": "Instagram Reel Hooks Pack",
+      "price": "₹399",
+      "type": "Digital",
+      "image": "/product-2.png"
+    },
+    {
+      "id": 3,
+      "name": "Creator Hoodie",
+      "price": "₹1,499",
+      "type": "Physical",
+      "image": "/product-3.png"
+    },
+    {
+      "id": 4,
+      "name": "Content Calendar Template",
+      "price": "₹299",
+      "type": "Digital",
+      "image": "/product-4.png"
+    },
+    {
+      "id": 5,
+      "name": "Personal Brand Guide (PDF)",
+      "price": "₹599",
+      "type": "Digital",
+      "image": "/product-5.png"
+    },
+    {
+      "id": 6,
+      "name": "Creator Desk Mat",
+      "price": "₹999",
+      "type": "Physical",
+      "image": "/product-6.png"
+    },
+    {
+      "id": 7,
+      "name": "Freelancer Proposal Templates",
+      "price": "₹449",
+      "type": "Digital",
+      "image": "/product-7.png"
+    },
+    {
+      "id": 8,
+      "name": "YouTube Growth Playbook",
+      "price": "₹699",
+      "type": "Digital",
+      "image": "/product-8.png"
+    }
+  ]
+}
