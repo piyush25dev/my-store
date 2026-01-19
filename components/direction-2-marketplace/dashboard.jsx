@@ -1,8 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   Table,
   TableHeader,
@@ -86,91 +82,94 @@ export default function DashboardMarketplaceMobileFirst() {
           </div>
 
           {/* MOBILE PRODUCT LIST */}
-<div className="space-y-4 md:hidden">
-  {products.map((product) => (
-    <Card
-      key={product.id}
-      className={product.status === "Out" ? "opacity-60" : ""}
-    >
-      <CardContent className="p-4 space-y-3">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-medium">{product.name}</h3>
-            <p className="text-xs text-muted-foreground">
-              {product.type} · {product.inventory}
-            </p>
+          <div className="space-y-4 md:hidden">
+            {products.map((product) => (
+              <Card
+                key={product.id}
+                className={product.status === "Out" ? "opacity-60" : ""}
+              >
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-medium">{product.name}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {product.type} · {product.inventory}
+                      </p>
+                    </div>
+                    <Badge
+                      variant={product.status === "Out" ? "outline" : "default"}
+                    >
+                      {product.status === "Out" ? "Out of Stock" : "Active"}
+                    </Badge>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold">{product.price}</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={product.status === "Out"}
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-          <Badge variant={product.status === "Out" ? "outline" : "default"}>
-            {product.status === "Out" ? "Out of Stock" : "Active"}
-          </Badge>
-        </div>
 
-        <div className="flex justify-between items-center">
-          <span className="font-bold">{product.price}</span>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={product.status === "Out"}
-          >
-            Edit
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  ))}
-</div>
-
-
-          {/* DESKTOP TABLE (CONTENT-HEAVY) */}
-         {/* DESKTOP TABLE */}
-<div className="hidden md:block">
-  <Card>
-    <CardHeader>
-      <h2 className="font-semibold">Product List</h2>
-    </CardHeader>
-    <CardContent className="p-0">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Product</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Price</TableHead>
-            <TableHead>Inventory</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {products.map((product) => (
-            <TableRow key={product.id}>
-              <TableCell>{product.name}</TableCell>
-              <TableCell>{product.type}</TableCell>
-              <TableCell>{product.price}</TableCell>
-              <TableCell>{product.inventory}</TableCell>
-              <TableCell>
-                <Badge
-                  variant={product.status === "Out" ? "outline" : "default"}
-                >
-                  {product.status === "Out" ? "Out of Stock" : "Active"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={product.status === "Out"}
-                >
-                  Edit
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </CardContent>
-  </Card>
-</div>
-
+          {/* DESKTOP TABLE */}
+          <div className="hidden md:block">
+            <Card>
+              <CardHeader>
+                <h2 className="font-semibold">Product List</h2>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Inventory</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {products.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell>{product.name}</TableCell>
+                        <TableCell>{product.type}</TableCell>
+                        <TableCell>{product.price}</TableCell>
+                        <TableCell>{product.inventory}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              product.status === "Out" ? "outline" : "default"
+                            }
+                          >
+                            {product.status === "Out"
+                              ? "Out of Stock"
+                              : "Active"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={product.status === "Out"}
+                          >
+                            Edit
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         </main>
       </div>
     </div>
