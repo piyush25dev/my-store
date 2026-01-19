@@ -15,7 +15,7 @@ export default function DirectionOverview() {
       ].map((route) => (
         <Card key={route}>
           <CardContent className="p-4">
-            <Link href={`/mockups/direction-1-minimal/${route}`}>
+            <Link href={`/mockups/direction-3-premium/${route}`}>
               {route.replace("-", " ")}
             </Link>
           </CardContent>
