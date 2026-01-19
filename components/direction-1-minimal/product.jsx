@@ -1,6 +1,4 @@
-// app/mockups/direction-1-minimal/product/[id]/page.jsx
-
-import { products } from "@/app/mockups/direction-1-minimal/data/product";
+import { products } from "@/app/data/product";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -10,10 +8,8 @@ import Link from "next/link";
 import { Card, CardContent } from "../ui/card";
 
 export default async function ProductPage({ params }) {
-  // Await the params promise
   const { id } = await params;
 
-  // Find the product by ID
   const product = products.find((p) => p.id === id);
 
   if (!product) {

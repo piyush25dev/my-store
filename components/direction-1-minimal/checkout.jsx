@@ -1,5 +1,3 @@
-// components/direction-1-minimal/checkout.jsx
-
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { products } from "@/app/mockups/direction-1-minimal/data/product";
+import { products } from "@/app/data/product";
 import { ArrowLeft, Check, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 

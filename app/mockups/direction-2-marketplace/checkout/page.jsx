@@ -1,10 +1,14 @@
-import CheckoutMarketplace from '@/components/direction-2-marketplace/checkout'
-import React from 'react'
 
-export default function page() {
+"use client";
+
+import { Suspense } from "react";
+import LoadingState from "@/components/direction-2-marketplace/Checkout/components/LoadingState";
+import CheckoutIndex from "@/components/direction-2-marketplace/Checkout/CheckoutIndex";
+
+export default function CheckoutMarketplacePage() {
   return (
-    <div>
-      <CheckoutMarketplace />
-    </div>
-  )
+    <Suspense fallback={<LoadingState />}>
+      <CheckoutIndex />
+    </Suspense>
+  );
 }

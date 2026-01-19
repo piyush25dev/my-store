@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { products } from "@/app/mockups/direction-1-minimal/data/product";
+import { products } from "@/app/data/product";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
