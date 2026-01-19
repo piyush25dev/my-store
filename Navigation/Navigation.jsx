@@ -21,7 +21,8 @@ export default function Navigation() {
         { name: 'Store', path: '/store' },
         { name: 'Product', path: '/product' },
         { name: 'Checkout', path: '/checkout' },
-        { name: 'Dashboard', path: '/dashboard' }
+        { name: 'Admin Dashboard', path: '/admin-dashboard' },
+        { name: 'Creator Dashboard', path: '/creator-dashboard' }
       ]
     },
     {
