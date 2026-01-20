@@ -10,8 +10,8 @@ export default function DirectionOverview() {
         "store",
         "product",
         "checkout",
-        "creator-dashboard",
-        "admin-dashboard",
+        "dashboard/creator",
+        "dashboard/admin",
       ].map((route) => (
         <Card key={route}>
           <CardContent className="p-4">
