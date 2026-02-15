@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { products } from "@/app/data/product";
+import { PRODUCTS } from "../Store/components/products";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -118,7 +119,7 @@ export default function CheckoutIndex() {
         return;
       }
 
-      const foundProduct = products.find(p => p.id === productId);
+      const foundProduct = PRODUCTS.find(p => p.id === productId);
       if (!foundProduct) {
         router.push("/mockups/direction-2-marketplace/store");
         setIsLoading(false);

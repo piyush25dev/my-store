@@ -2,7 +2,6 @@
 
 import { CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
 
 export default function CheckoutProgress({ currentStep = 1 }) {
   const steps = [
@@ -24,47 +23,6 @@ export default function CheckoutProgress({ currentStep = 1 }) {
         </div>
         <Progress value={progressPercentage} className="h-2" />
       </div>
-
-      {/* Step Indicators */}
-      {/* <div className="relative">
-        <div className="absolute left-0 right-0 top-4 h-0.5 bg-gray-200 -translate-y-1/2 z-0">
-          <div 
-            className="h-full bg-green-500 transition-all duration-300"
-            style={{ width: `${progressPercentage}%` }}
-          />
-        </div>
-        <div className="relative flex justify-between z-10">
-          {steps.map((step) => (
-            <div key={step.id} className="flex flex-col items-center">
-              <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300",
-                step.status === "completed" 
-                  ? "bg-green-500 border-green-500 text-white" 
-                  : step.status === "current"
-                  ? "bg-white border-blue-500 text-blue-500"
-                  : "bg-white border-gray-300 text-gray-400"
-              )}>
-                {step.status === "completed" ? (
-                  <CheckCircle2 className="w-4 h-4" />
-                ) : (
-                  <span className="text-sm font-medium">{step.id}</span>
-                )}
-              </div>
-              <span className={cn(
-                "text-xs mt-2 font-medium text-center",
-                step.status === "current" ? "text-blue-500" : 
-                step.status === "completed" ? "text-green-600" : "text-gray-500"
-              )}>
-                {step.label}
-              </span>
-              <span className="text-xs text-gray-400 mt-1">
-                {step.status === "completed" ? "✓ Done" : 
-                 step.status === "current" ? "In progress" : "Upcoming"}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div> */}
 
       {/* Current Step Description */}
       <div className="mt-8 text-center">
