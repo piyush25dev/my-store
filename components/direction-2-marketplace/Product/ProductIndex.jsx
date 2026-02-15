@@ -63,7 +63,7 @@ export default async function ProductMarketplace({ params }) {
   const relatedProducts = PRODUCTS.filter((p) => p.id !== id).slice(0, 4);
 
   return (
-     <div className="min-h-screen bg-[#1a1714]">
+     <div className="min-h-screen bg-[#413c37]">
       <MarketNavigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

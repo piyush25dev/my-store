@@ -17,7 +17,7 @@ export default function ProductHeader({ product }) {
     : 0;
 
   return (
-    <Card className="overflow-hidden bg-[#36302b] border-stone-800">
+    <Card className="overflow-hidden bg-[#12110f] border-stone-800">
       <CardContent className="p-6">
         <div className="flex flex-col md:flex-row gap-6 pt-4">
 

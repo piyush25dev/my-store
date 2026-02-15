@@ -14,7 +14,7 @@ const SELLER = {
 
 export default function SellerCard() {
   return (
-    <Card className="bg-[#36302b] border-stone-800">
+    <Card className="bg-[#12110f] border-stone-800">
       <CardContent className="p-5 sm:p-6">
         <p className="font-sans text-[10px] uppercase tracking-widest text-stone-200 mb-4">
           About the Seller

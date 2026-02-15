@@ -29,7 +29,7 @@ const TAB_LIST = ["description", "highlights", "details", "reviews", "faq"];
 export default function ProductTabs({ product }) {
   return (
     <Tabs defaultValue="description" className="w-full">
-      <TabsList className="w-full flex flex-wrap md:grid md:grid-cols-5 h-auto gap-1 p-1 bg-[#36302b] border border-stone-800 rounded-xl">
+      <TabsList className="w-full flex flex-wrap md:grid md:grid-cols-5 h-auto gap-1 p-1 bg-[#12110f] border border-stone-800 rounded-xl">
         {TAB_LIST.map((tab) => (
           <TabsTrigger
             key={tab}
@@ -64,7 +64,7 @@ export default function ProductTabs({ product }) {
 
 function DescriptionTab({ product }) {
   return (
-    <Card className="bg-[#36302b] border-stone-800 pt-4">
+    <Card className="bg-[#12110f] border-stone-800 pt-4">
       <CardContent className="p-6 space-y-6">
         <div>
           <h3 className="font-display text-lg text-stone-100 mb-3">About This Product</h3>
@@ -105,7 +105,7 @@ function DescriptionTab({ product }) {
 
 function HighlightsTab({ product }) {
   return (
-    <Card className="bg-[#36302b] border-stone-800 pt-4">
+    <Card className="bg-[#12110f] border-stone-800 pt-4">
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {product.highlights.map((item, idx) => (
@@ -135,7 +135,7 @@ function DetailsTab({ product }) {
   ];
 
   return (
-    <Card className="bg-[#36302b] border-stone-800 pt-4">
+    <Card className="bg-[#12110f] border-stone-800 pt-4">
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-1">
@@ -164,7 +164,7 @@ function DetailsTab({ product }) {
 
 function ReviewsTab({ reviews }) {
   return (
-    <Card className="bg-[#36302b] border-stone-800 pt-4">
+    <Card className="bg-[#12110f] border-stone-800 pt-4">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
@@ -190,7 +190,7 @@ function ReviewsTab({ reviews }) {
 
 function FaqTab({ product }) {
   return (
-    <Card className="bg-[#36302b] border-stone-800 pt-4">
+    <Card className="bg-[#12110f] border-stone-800 pt-4">
       <CardContent className="p-6 space-y-5">
         <h3 className="font-display text-stone-100 text-lg">Frequently Asked Questions</h3>
         {product.faqs.map((faq, idx) => (

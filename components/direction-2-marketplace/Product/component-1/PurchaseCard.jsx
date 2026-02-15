@@ -32,7 +32,7 @@ export default function PurchaseCard({ product }) {
     (addons.tutorials ? 499 : 0);
 
   return (
-    <Card className="sticky top-24 bg-[#36302b] border-stone-800">
+    <Card className="sticky top-24 bg-[#12110f] border-stone-800">
       <CardHeader className="pb-2">
         <h3 className="font-display text-stone-100 text-base">Purchase Options</h3>
       </CardHeader>

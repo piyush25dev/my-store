@@ -14,7 +14,7 @@ const STATS = [
 
 export function MarketplaceStats() {
   return (
-    <Card className="bg-[#36302b] border-stone-800">
+    <Card className="bg-[#12110f] border-stone-800">
       <CardHeader className="pb-2">
         <h3 className="font-display text-stone-100 text-base">Marketplace Stats</h3>
       </CardHeader>
@@ -40,7 +40,7 @@ export function MarketplaceStats() {
 
 export function RelatedProducts({ products, title, compact = false }) {
   return (
-    <Card className="bg-[#36302b] border-stone-800">
+    <Card className="bg-[#12110f] border-stone-800">
       <CardHeader className="pb-2">
         <h3 className="font-display text-stone-100 text-base">{title}</h3>
       </CardHeader>

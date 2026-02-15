@@ -13,7 +13,7 @@ import Link from "next/link";
 
 export default function MarketNavigation() {
   return (
-    <div className="sticky top-0 z-40 bg-[#1a1714]/95 backdrop-blur-md border-b border-stone-800">
+    <div className="sticky top-0 z-40 bg-[#12110f]/95 backdrop-blur-md border-b border-stone-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
 
