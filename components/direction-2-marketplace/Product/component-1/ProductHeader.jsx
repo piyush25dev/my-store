@@ -17,32 +17,31 @@ export default function ProductHeader({ product }) {
     : 0;
 
   return (
-    <Card className="overflow-hidden bg-[#12110f] border-stone-800">
+    <Card className="overflow-hidden bg-white border-stone-200/60 shadow-sm">
       <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row gap-6 pt-4">
+        <div className="flex flex-col md:flex-row gap-6 pt-2">
 
           {/* Image Gallery */}
           <div className="md:w-1/3">
-            <div className="relative aspect-square rounded-xl overflow-hidden border border-stone-700">
+            <div className="relative aspect-square rounded-xl overflow-hidden border border-stone-200/60 bg-stone-50">
               <Image
                 src={product.image}
                 alt={product.name}
                 fill
-                className="object-cover"
+                className="object-cover transition-transform duration-500 hover:scale-105"
                 priority
               />
               {discount > 0 && (
-                <Badge className="absolute top-3 left-3 bg-yellow-700 text-stone-200 font-semibold font-sans px-2.5 py-1 text-xs">
+                <Badge className="absolute top-3 left-3 bg-rose-500 text-white border-0 font-sans text-[10px] px-2.5 py-1">
                   {discount}% OFF
                 </Badge>
               )}
             </div>
-            {/* Thumbnail strip */}
             <div className="grid grid-cols-4 gap-2 mt-3">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="aspect-square bg-stone-400 rounded-lg border border-stone-700 cursor-pointer hover:border-amber-500/60 transition-colors"
+                  className="aspect-square rounded-lg bg-stone-100 border border-stone-200/60 cursor-pointer hover:border-rose-300 transition-colors"
                 />
               ))}
             </div>
@@ -55,18 +54,18 @@ export default function ProductHeader({ product }) {
                 <div>
                   <Badge
                     variant="outline"
-                    className="mb-2.5 border-amber-500/40 text-yellow-400 font-sans text-[10px] tracking-widest uppercase"
+                    className="mb-2.5 border-rose-200 bg-rose-50/60 text-rose-700 font-sans text-[10px] tracking-widest uppercase"
                   >
                     {product.type}
                   </Badge>
-                  <h1 className="font-display text-2xl sm:text-3xl text-stone-100 leading-tight">
+                  <h1 className="font-display text-2xl sm:text-3xl text-stone-900 leading-tight">
                     {product.name}
                   </h1>
-                  <p className="text-stone-400 font-sans text-sm mt-1.5 leading-relaxed">
+                  <p className="font-sans text-sm text-stone-500 mt-1.5 leading-relaxed">
                     {product.tagline}
                   </p>
                 </div>
-                <button className="p-2 rounded-lg hover:bg-stone-800 transition-colors text-stone-500 hover:text-red-400 shrink-0">
+                <button className="p-2 rounded-lg hover:bg-rose-50 transition-colors text-stone-400 hover:text-rose-500 shrink-0">
                   <Heart className="w-5 h-5" />
                 </button>
               </div>
@@ -77,11 +76,7 @@ export default function ProductHeader({ product }) {
                 <Divider />
                 <StatItem icon={<Eye className="w-3.5 h-3.5" />} text={`${STATS.views} views today`} />
                 <Divider />
-                <StatItem
-                  icon={<TrendingUp className="w-3.5 h-3.5" />}
-                  text={`${STATS.sales} sales`}
-                  variant="success"
-                />
+                <StatItem icon={<TrendingUp className="w-3.5 h-3.5" />} text={`${STATS.sales} sales`} variant="success" />
               </div>
             </div>
 
@@ -101,7 +96,7 @@ export default function ProductHeader({ product }) {
 }
 
 function Divider() {
-  return <span className="text-stone-700">|</span>;
+  return <span className="text-stone-300">|</span>;
 }
 
 function RatingDisplay({ rating, reviews }) {
@@ -112,21 +107,19 @@ function RatingDisplay({ rating, reviews }) {
           <Star
             key={i}
             className={`w-3.5 h-3.5 ${
-              i < Math.floor(rating)
-                ? "fill-amber-400 text-amber-400"
-                : "fill-stone-700 text-stone-700"
+              i < Math.floor(rating) ? "fill-amber-400 text-amber-400" : "fill-stone-200 text-stone-200"
             }`}
           />
         ))}
       </div>
-      <span className="font-sans font-semibold text-sm text-stone-200">{rating}</span>
-      <span className="font-sans text-xs text-stone-500">({reviews} reviews)</span>
+      <span className="font-sans font-semibold text-sm text-stone-800">{rating}</span>
+      <span className="font-sans text-xs text-stone-400">({reviews} reviews)</span>
     </div>
   );
 }
 
 function StatItem({ icon, text, variant = "default" }) {
-  const color = variant === "success" ? "text-emerald-400" : "text-stone-400";
+  const color = variant === "success" ? "text-emerald-600" : "text-stone-400";
   return (
     <div className={`flex items-center gap-1.5 font-sans text-xs ${color}`}>
       {icon}
@@ -137,22 +130,22 @@ function StatItem({ icon, text, variant = "default" }) {
 
 function PriceDisplay({ price, originalPrice, discount, details, stats }) {
   return (
-    <div className="pt-4 border-t border-stone-800 space-y-3">
+    <div className="pt-4 border-t border-stone-100 space-y-3">
       <div className="flex items-baseline gap-3">
-        <span className="font-display text-3xl text-amber-400">₹{price.toLocaleString()}</span>
+        <span className="font-display text-3xl text-stone-900">₹{price.toLocaleString()}</span>
         {originalPrice && (
-          <span className="font-sans text-base text-stone-200 line-through">
+          <span className="font-sans text-base text-stone-400 line-through">
             ₹{originalPrice.toLocaleString()}
           </span>
         )}
         {discount > 0 && (
-          <Badge className="bg-amber-500/10 text-yellow-400 border border-amber-500/30 font-sans text-xs">
+          <Badge className="bg-rose-50 text-rose-600 border border-rose-200 font-sans text-xs">
             {discount}% OFF
           </Badge>
         )}
       </div>
       <div className="flex flex-wrap items-center gap-4">
-        <StatItem icon={<Package className="w-3.5 h-3.5" />} text={details.format} />
+        <StatItem icon={<Package className="w-3.5 h-3.5" />} text={details?.format} />
         <StatItem icon={<Download className="w-3.5 h-3.5" />} text={`${stats.downloads} downloads`} />
         <StatItem icon={<Clock className="w-3.5 h-3.5" />} text="Updated 2 days ago" />
       </div>

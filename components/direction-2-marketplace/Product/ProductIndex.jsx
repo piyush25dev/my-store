@@ -58,12 +58,21 @@ export default async function ProductMarketplace({ params }) {
   const { id } = await params;
   const product = PRODUCTS.find((p) => p.id === id);
 
-  if (!product) return <ProductNotFound backUrl="/mockups/direction-2-marketplace/store" />;
+  if (!product) return <ProductNotFound backUrl="/store" />;
 
   const relatedProducts = PRODUCTS.filter((p) => p.id !== id).slice(0, 4);
 
   return (
-     <div className="min-h-screen bg-[#413c37]">
+    <div className="min-h-screen bg-[#faf9f7]">
+      {/* Subtle dot texture */}
+      <div
+        className="fixed inset-0 -z-10 opacity-[0.018] pointer-events-none"
+        style={{
+          backgroundImage: `radial-gradient(circle, #78716c 1px, transparent 1px)`,
+          backgroundSize: "24px 24px",
+        }}
+      />
+
       <MarketNavigation />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
