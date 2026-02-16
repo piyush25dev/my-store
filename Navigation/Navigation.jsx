@@ -39,8 +39,8 @@ export default function Navigation() {
       bgGradient: 'from-blue-50 to-purple-50',
       pages: [
         { name: 'Store', path: '/store' },
-        { name: 'Creator Dashboard', path: '/dashboard/creator' },
-        { name: 'Admin Dashboard', path: '/dashboard/admin' }
+        { name: 'Creator Dashboard', path: '/dashboard/creator/overview' },
+        { name: 'Admin Dashboard', path: '/dashboard/admin/overview' }
       ]
     }
   ]

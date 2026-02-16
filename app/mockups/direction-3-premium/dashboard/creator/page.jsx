@@ -1,5 +1,7 @@
-import CreatorDashboard from "@/components/direction-3-premium/Dashboard-Premium/Creator_Dashboard/CreatorDashboard";
+import { redirect } from "next/navigation";
 
-export default function CreatorPage() {
-  return <CreatorDashboard />;
+// Redirect to the default tab relative to wherever this file is mounted.
+// Next.js resolves this relative to the current route group automatically.
+export default function CreatorRoot() {
+  redirect("./overview");
 }
