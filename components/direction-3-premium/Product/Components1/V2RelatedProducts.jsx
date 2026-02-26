@@ -14,7 +14,7 @@ export function V2RelatedProducts({ products }) {
         {products.map((product) => (
           <Link
             key={product.id}
-            href={`/mockups/direction-3-premium/product/${product.id}`}
+            href={`/mockups/direction-3-premium/product-marketplace/${product.id}`}
             className="group block bg-white rounded-xl border border-stone-200/60 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
           >
             <div className="relative aspect-[4/3] overflow-hidden bg-stone-50">

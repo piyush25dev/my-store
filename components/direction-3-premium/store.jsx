@@ -1,5 +1,7 @@
+"use client"
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { products } from "@/app/data/product";
 import {
   Card,
@@ -13,8 +15,17 @@ import { Badge } from "@/components/ui/badge";
 import { Heart, Share2, Star } from "lucide-react";
 
 export default function StorePremium() {
+  const pathname = usePathname();
   const featured = products.find((p) => p.featured);
   const collection = products.filter((p) => !p.featured);
+
+  // Determine the product route based on current pathname
+  const getProductLink = (productId) => {
+    if (pathname.includes("store-2")) {
+      return `/mockups/direction-3-premium/product-marketplace/${productId}`;
+    }
+    return `/mockups/direction-3-premium/product/${productId}`;
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -124,7 +135,7 @@ export default function StorePremium() {
                     </div>
 
                     <div className="flex flex-col gap-4 sm:flex-row">
-                      <Link href={`/mockups/direction-3-premium/product/${featured.id}`} className="flex-1">
+                      <Link href={getProductLink(featured.id)} className="flex-1">
                         <Button 
                           size="lg" 
                           className="w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 shadow-lg hover:shadow-xl transition-all duration-300"
@@ -238,7 +249,7 @@ export default function StorePremium() {
                   <div className="flex w-full items-center justify-between">
                     {product.inStock ? (
                       <>
-                        <Link href={`/mockups/direction-3-premium/product/${product.id}`} className="flex-1">
+                        <Link href={getProductLink(product.id)} className="flex-1">
                           <Button 
                             variant="outline" 
                             className="w-full border-gray-300 hover:bg-gray-50 hover:border-gray-400"
