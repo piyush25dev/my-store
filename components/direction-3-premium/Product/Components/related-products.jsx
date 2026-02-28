@@ -22,7 +22,7 @@ export function RelatedProducts({ products, currentProductId }) {
         {relatedProducts.map((relatedProduct) => (
           <Link 
             key={relatedProduct.id} 
-            href={`/mockups/direction-3-premium/product/${relatedProduct.id}`}
+            href={`/product/${relatedProduct.id}`}
             className="group block"
           >
             <Card className="overflow-hidden border border-gray-200/50 bg-white/50 hover:bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">

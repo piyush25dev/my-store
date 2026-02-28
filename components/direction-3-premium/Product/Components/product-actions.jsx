@@ -20,7 +20,7 @@ export function ProductActions({ product }) {
 
             {/* Buy Now → Checkout */}
             <Link
-              href={`/mockups/direction-3-premium/checkout?product=${product.id}`}
+              href={`/checkout?product=${product.id}`}
             >
               <Button
                 size="lg"

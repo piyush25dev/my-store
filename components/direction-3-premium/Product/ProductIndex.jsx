@@ -1,9 +1,18 @@
-import { use } from 'react';
+'use client';
+
+import { useState } from 'react';
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-import { products } from "@/app/data/product";
-import { ProductNotFound } from '@/components/ui/not-found';
+// V2 Components (Premium Layout - Sidebar)
+import { V2ProductHeader } from "./Components1/V2ProductHeader";
+import { V2PurchasePanel } from "./Components1/V2PurchasePanel";
+import { V2SellerCard } from "./Components1/V2SellerCard";
+import { V2StatsPanel } from "./Components1/V2SellerCard";
+import { V2ProductTabs } from "./Components1/V2ProductTabs";
+import { V2RelatedProducts } from "./Components1/V2RelatedProducts";
+
+// V1 Components (Standard Layout - Grid)
 import { ProductHero } from './Components/product-hero';
 import { ProductHeader } from './Components/product-header';
 import { PricingSection } from './Components/pricing-section';
@@ -13,14 +22,58 @@ import { TrustBadges } from './Components/trust-badges';
 import { ProductTabs } from './Components/product-tabs';
 import { RelatedProducts } from './Components/related-products';
 
-export default async function ProductIndex({ params }) {
-  const { id } = await params;
-  const product = products.find((p) => p.id === id);
+export default function UnifiedProductPageClient({ product, related }) {
+  const [viewMode, setViewMode] = useState('v2'); 
 
-  if (!product) {
-    return <ProductNotFound backUrl="/" />;
+  // ──── V2 LAYOUT (Premium) ────
+  if (viewMode === 'v2') {
+    return (
+      <div className="min-h-screen bg-[#faf9f7]">
+        {/* Subtle texture overlay */}
+        <div
+          className="fixed inset-0 -z-10 opacity-[0.015]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+          {/* Header with back nav and toggle */}
+          <div className="flex items-center justify-between mb-8">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-sm text-stone-500 hover:text-stone-900 transition-colors group"
+            >
+              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+              <span className="font-sans">Back to Store</span>
+            </Link>
+            
+            {/* Design Toggle */}
+            <DesignToggle viewMode={viewMode} setViewMode={setViewMode} />
+          </div>
+
+          {/* 3-column layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* ── Left column (spans 2) ──────────────────────────────────── */}
+            <div className="lg:col-span-2 space-y-8">
+              <V2ProductHeader product={product} />
+              <V2SellerCard />
+              <V2ProductTabs product={product} />
+              <V2RelatedProducts products={related} />
+            </div>
+
+            {/* ── Right column: sticky sidebar ──────────────────────────── */}
+            <div className="space-y-5">
+              <V2PurchasePanel product={product} />
+              <V2StatsPanel />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
+  // ──── V1 LAYOUT (Standard) ────
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50/30 via-white to-rose-50/20">
       {/* Animated background elements */}
@@ -31,15 +84,18 @@ export default async function ProductIndex({ params }) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        {/* Navigation */}
-        <div className="mb-6 lg:mb-8">
+        {/* Navigation with toggle */}
+        <div className="flex items-center justify-between mb-6 lg:mb-8">
           <Link 
-            href="/mockups/direction-3-premium/store" 
+            href="/" 
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors group"
           >
             <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back to Store
           </Link>
+          
+          {/* Design Toggle */}
+          <DesignToggle viewMode={viewMode} setViewMode={setViewMode} />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
@@ -66,14 +122,14 @@ export default async function ProductIndex({ params }) {
 
         {/* Product Details Tabs */}
         <div className="mt-12 lg:mt-16">
-          <div className="bg-white/50 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-6 lg:p-8">
+          <div className="bg-white/50 backdrop-blur-sm rounded-2xl border border-gray-300/30 p-6 lg:p-8">
             <ProductTabs product={product} />
           </div>
         </div>
 
         {/* Related Products */}
         <RelatedProducts 
-          products={products} 
+          products={related} 
           currentProductId={product.id} 
         />
       </div>
@@ -81,64 +137,58 @@ export default async function ProductIndex({ params }) {
   );
 }
 
-// import Link from "next/link";
-// import { ArrowLeft } from "lucide-react";
-// import { products } from "@/app/data/product";
-// import { ProductNotFound } from "@/components/ui/not-found";
+/**
+ * Elegant toggle component to switch between design versions
+ */
+function DesignToggle({ viewMode, setViewMode }) {
+  return (
+    <div className="relative inline-flex items-center p-1.5 rounded-full bg-gradient-to-b from-gray-100 to-gray-200 backdrop-blur-sm border border-gray-300/50 shadow-lg">
+      {/* Inner subtle border for depth */}
+      <div className="absolute inset-0 rounded-full border border-white/50 pointer-events-none" />
 
-// import { V2ProductHeader } from "./Components1/V2ProductHeader";
-// import { V2PurchasePanel } from "./Components1/V2PurchasePanel";
-// import { V2SellerCard } from "./Components1/V2SellerCard";
-// import { V2StatsPanel } from "./Components1/V2SellerCard";
-// import { V2ProductTabs } from "./Components1/V2ProductTabs";
-// import { V2RelatedProducts } from "./Components1/V2RelatedProducts";
+      {/* Background slider with 3D effect */}
+      <div
+        className="absolute inset-1.5 rounded-full bg-gradient-to-b from-white to-gray-100 shadow-inner transition-all duration-500 ease-out"
+        style={{
+          left: viewMode === 'v1' ? 'calc(50% + 2px)' : '6px',
+          right: viewMode === 'v1' ? '6px' : 'calc(50% + 2px)',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+        }}
+      />
 
-// export default async function ProductPageV2({ params }) {
-//   const { id } = await params;
-//   const product = products.find((p) => p.id === id);
+      {/* V2 Button */}
+      <button
+        onClick={() => setViewMode('v2')}
+        className={`relative px-3 py-2.5 md:px-4 rounded-full text-sm font-medium transition-all duration-300 transform ${
+          viewMode === 'v2'
+            ? 'text-gray-900 drop-shadow-md scale-105'
+            : 'text-gray-500 hover:text-gray-700'
+        }`}
+      >
+        <span className="flex items-center gap-0 md:gap-1.5">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z" />
+          </svg>
+          <span className="hidden md:inline">Premium</span>
+        </span>
+      </button>
 
-//   if (!product) return <ProductNotFound backUrl="/store" />;
-
-//   const related = products.filter((p) => p.id !== id).slice(0, 4);
-
-//   return (
-//     <div className="min-h-screen bg-[#faf9f7]">
-//       {/* Subtle texture overlay */}
-//       <div
-//         className="fixed inset-0 -z-10 opacity-[0.015]"
-//         style={{
-//           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-//         }}
-//       />
-
-//       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-10">
-//         {/* Back nav */}
-//         <Link
-//           href="/mockups/direction-3-premium/store"
-//           className="inline-flex items-center gap-2 text-sm text-stone-500 hover:text-stone-900 transition-colors group mb-8"
-//         >
-//           <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-//           <span className="font-sans">Back to Store</span>
-//         </Link>
-
-//         {/* 3-column layout */}
-//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-//           {/* ── Left column (spans 2) ──────────────────────────────────── */}
-//           <div className="lg:col-span-2 space-y-8">
-//             <V2ProductHeader product={product} />
-//             <V2SellerCard />
-//             <V2ProductTabs product={product} />
-//             <V2RelatedProducts products={related} />
-//           </div>
-
-//           {/* ── Right column: sticky sidebar ──────────────────────────── */}
-//           <div className="space-y-5">
-//             <V2PurchasePanel product={product} />
-//             <V2StatsPanel />
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
+      {/* V1 Button */}
+      <button
+        onClick={() => setViewMode('v1')}
+        className={`relative px-3 py-2.5 md:px-4 rounded-full text-sm font-medium transition-all duration-300 transform ${
+          viewMode === 'v1'
+            ? 'text-gray-900 drop-shadow-md scale-105'
+            : 'text-gray-500 hover:text-gray-700'
+        }`}
+      >
+        <span className="flex items-center gap-0 md:gap-1.5">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 4H5a2 2 0 00-2 2v14a2 2 0 002 2h4m0-18v18m0-18h10a2 2 0 012 2v14a2 2 0 01-2 2h-10" />
+          </svg>
+          <span className="hidden md:inline">Standard</span>
+        </span>
+      </button>
+    </div>
+  );
+}

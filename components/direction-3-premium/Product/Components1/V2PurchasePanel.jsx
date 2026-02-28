@@ -133,7 +133,7 @@ export function V2PurchasePanel({ product }) {
           </Button>
 
           {product.inStock ? (
-            <Link href={`/mockups/direction-3-premium/checkout?product=${product.id}`} className="block">
+            <Link href={`/checkout?product=${product.id}`} className="block">
               <Button
                 size="lg"
                 variant="outline"
