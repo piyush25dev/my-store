@@ -7,8 +7,8 @@ export function ProductHero({ product }) {
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden border-0 shadow-2xl shadow-gray-100/50 bg-gradient-to-br from-gray-50/50 to-white">
-        <CardContent className="p-0">
-          <div className="relative aspect-[4/3] lg:aspect-square overflow-hidden">
+        <CardContent className="!p-0">
+          <div className="relative aspect-[4/3] lg:aspect-square overflow-hidden rounded-xl">
             <Image
               src={product.image}
               alt={product.name}

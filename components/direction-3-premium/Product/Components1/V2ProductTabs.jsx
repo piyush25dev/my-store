@@ -34,28 +34,19 @@ export function V2ProductTabs({ product }) {
     <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm overflow-hidden">
       <Tabs defaultValue="description">
         <TabsList
-         className="
-      w-full
-      flex
-      flex-wrap
-      md:grid
-      md:grid-cols-5
-      h-auto
-      gap-2
-      p-4
-      md:px-0
-    "
-    style={{
-      scrollPaddingLeft: "1rem",
-      scrollPaddingRight: "1rem",
-    }}
+          className="w-full flex flex-wrap md:grid md:grid-cols-5 h-auto gap-2 p-4 md:px-2"
+          style={{
+            scrollPaddingLeft: "1rem",
+            scrollPaddingRight: "1rem",
+          }}
         >
           {["description", "highlights", "details", "reviews", "faq"].map(
             (tab) => (
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="flex-shrink-0 md:w-full"              >
+                className="flex-shrink-0 md:w-full"
+              >
                 {tab}
               </TabsTrigger>
             ),
@@ -124,7 +115,7 @@ function DescriptionTab({ product }) {
                 variant="secondary"
                 className="font-sans text-xs bg-rose-50 text-rose-700 border border-rose-200/60"
               >
-                {role}
+                {role} 
               </Badge>
             ))}
           </div>

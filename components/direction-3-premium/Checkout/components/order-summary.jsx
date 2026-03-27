@@ -1,9 +1,15 @@
 import { Shield, Lock, CheckCircle } from "lucide-react";
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardFooter,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { SecurityBadge } from "./security-badge";
+import Image from "next/image";
 
 export function OrderSummary({ product, onSubmit, loading }) {
   const totalAmount = (product.price * 1.18).toFixed(2);
@@ -12,21 +18,24 @@ export function OrderSummary({ product, onSubmit, loading }) {
   return (
     <Card className="border border-gray-200/50 bg-white/50 backdrop-blur-sm sticky top-8">
       <CardHeader className="space-y-1">
-        <h2 className="text-xl font-semibold text-gray-900">
-          Order Summary
-        </h2>
+        <h2 className="text-xl font-semibold text-gray-900">Order Summary</h2>
         <p className="text-sm text-gray-600">Review your purchase</p>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Product Info */}
         <div className="flex gap-4 p-4 rounded-xl bg-gradient-to-r from-gray-50/30 to-white/30">
-          <div className="h-16 w-16 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-            <div className="h-12 w-12 rounded bg-gradient-to-r from-rose-400 to-pink-400" />
+          <div className="relative h-16 w-16 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              className="object-cover"
+              sizes="64px"
+              priority
+            />
           </div>
           <div className="flex-1">
-            <h3 className="font-medium text-gray-900">
-              {product.name}
-            </h3>
+            <h3 className="font-medium text-gray-900">{product.name}</h3>
             <p className="text-sm text-gray-600">{product.tagline}</p>
             <div className="flex items-center justify-between mt-2">
               <Badge variant="outline" className="text-xs">
@@ -74,12 +83,8 @@ export function OrderSummary({ product, onSubmit, loading }) {
             <p className="text-sm text-gray-600">Including taxes</p>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-gray-900">
-              ₹{totalAmount}
-            </p>
-            <p className="text-xs text-gray-600">
-              ₹{product.price} + 18% GST
-            </p>
+            <p className="text-2xl font-bold text-gray-900">₹{totalAmount}</p>
+            <p className="text-xs text-gray-600">₹{product.price} + 18% GST</p>
           </div>
         </div>
 
@@ -116,7 +121,7 @@ export function OrderSummary({ product, onSubmit, loading }) {
           )}
         </Button>
       </CardFooter>
-      <SecurityBadge/>
+      <SecurityBadge />
     </Card>
   );
 }

@@ -26,7 +26,7 @@ export function RelatedProducts({ products, currentProductId }) {
             className="group block"
           >
             <Card className="overflow-hidden border border-gray-200/50 bg-white/50 hover:bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
-              <CardContent className="p-0">
+              <CardContent className="!p-0">
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
                   <Image
@@ -37,7 +37,7 @@ export function RelatedProducts({ products, currentProductId }) {
                     sizes="(max-width: 768px) 50vw, 33vw"
                   />
                   <div className="absolute left-4 top-4">
-                    <Badge className="bg-white/90 backdrop-blur-sm text-gray-800">
+                <Badge className="font-sans text-[9px] px-1.5 py-0.5 bg-white/90 text-stone-700 border border-stone-200/60 shadow-sm transition-colors duration-300 group-hover:bg-black group-hover:text-white">
                       {relatedProduct.type}
                     </Badge>
                   </div>

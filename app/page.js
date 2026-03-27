@@ -1,4 +1,4 @@
-import StorePremium from '@/components/direction-3-premium/store'
+import StorePremium from '@/components/direction-3-premium/Store/StorePremium'
 import Link from 'next/link'
 import React from 'react'
 
