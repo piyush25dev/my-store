@@ -37,7 +37,7 @@ export function FeaturedProduct({ product, getProductLink }) {
 
 function ProductImage({ product }) {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-rose-50/50 to-amber-50/50 p-0 md:p-8">
+    <div className="relative overflow-hidden bg-gradient-to-br from-rose-50/50 to-amber-50/50 p-0">
       <div className="relative aspect-[4/3] overflow-hidden rounded-2xl ">
         <Image
           src={product.image}
@@ -54,14 +54,14 @@ function ProductImage({ product }) {
 
 function ProductDetails({ product, getProductLink }) {
   return (
-    <div className="flex flex-col justify-start p-0 md:p-8 h-full">
+    <div className="flex flex-col justify-start p-0 h-full">
   <div className="mb-4 space-y-3">
     <div className="flex items-center gap-3">
       <Badge variant="outline" className="border-rose-200 bg-rose-50 text-rose-700">
         {product.type}
       </Badge>
 
-      {product.inStock ? (
+      {product.in_stock ? (
         <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
           In Stock
         </Badge>

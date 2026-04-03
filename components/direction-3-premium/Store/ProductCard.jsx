@@ -54,7 +54,7 @@ function ProductCardImage({ product }) {
         <Badge className="w-fit border-0 bg-white/90 !text-black group-hover:!text-white group-hover:!bg-black transition-colors duration-300 shadow-sm">
           {product.type}
         </Badge>
-        {!product.inStock && (
+        {!product.in_stock && (
           <Badge variant="destructive" className="w-fit">
             Sold Out
           </Badge>
@@ -109,7 +109,7 @@ function ProductCardPrice({ product }) {
 }
 
 function ProductCardActions({ product, getProductLink }) {
-  if (product.inStock) {
+  if (product.in_stock) {
     return (
       <div className="flex w-full items-center justify-between">
         <Link href={getProductLink(product.id)} className="flex-1">

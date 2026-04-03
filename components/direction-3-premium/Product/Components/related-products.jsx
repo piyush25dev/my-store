@@ -22,7 +22,7 @@ export function RelatedProducts({ products, currentProductId }) {
         {relatedProducts.map((relatedProduct) => (
           <Link 
             key={relatedProduct.id} 
-            href={`/product/${relatedProduct.id}`}
+            href={`/product/${relatedProduct?.slug}`}
             className="group block"
           >
             <Card className="overflow-hidden border border-gray-200/50 bg-white/50 hover:bg-white hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm">
@@ -30,8 +30,8 @@ export function RelatedProducts({ products, currentProductId }) {
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
                   <Image
-                    src={relatedProduct.image}
-                    alt={relatedProduct.name}
+                    src={relatedProduct?.product_images?.[0]?.image_url || null} 
+                    alt={relatedProduct?.product_images?.[0]?.alt_text || relatedProduct?.name} 
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                     sizes="(max-width: 768px) 50vw, 33vw"

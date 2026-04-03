@@ -61,8 +61,8 @@ export function V2ProductHeader({ product }) {
             <div className="group relative aspect-square rounded-xl overflow-hidden bg-stone-50 border border-stone-200/60 transition-all duration-300 hover:shadow-[0_0_25px_rgba(0,0,0,0.12)]">
               {" "}
               <Image
-                src={product.image}
-                alt={product.name}
+                src={product?.product_images?.[0]?.image_url || null}
+                alt={product?.product_images?.[0]?.alt_text || product?.name}
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 40vw"

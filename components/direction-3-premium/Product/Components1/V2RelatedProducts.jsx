@@ -18,13 +18,13 @@ export function V2RelatedProducts({ products }) {
         {products.map((product) => (
           <Link
             key={product.id}
-            href={`/product/${product.id}`}
+            href={`/product/${product?.slug}`}
             className="group block bg-white rounded-xl border border-stone-200/60 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
           >
             <div className="relative aspect-[4/3] overflow-hidden bg-stone-50">
               <Image
-                src={product.image}
-                alt={product.name}
+                src={product?.product_images?.[0]?.image_url || null} 
+                alt={product?.product_images?.[0]?.alt_text || product?.name} 
                 fill
                 sizes="(max-width: 640px) 50vw, 25vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-300"

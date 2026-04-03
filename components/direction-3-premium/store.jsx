@@ -94,7 +94,7 @@ export default function StorePremium() {
                         <Badge variant="outline" className="border-rose-200 bg-rose-50 text-rose-700">
                           {featured.type}
                         </Badge>
-                        {featured.inStock ? (
+                        {featured.in_stock ? (
                           <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
                             In Stock
                           </Badge>
@@ -198,7 +198,7 @@ export default function StorePremium() {
                       <Badge className="w-fit border-0 bg-white/90 backdrop-blur-sm text-gray-800 shadow-sm">
                         {product.type}
                       </Badge>
-                      {!product.inStock && (
+                      {!product.in_stock && (
                         <Badge variant="destructive" className="w-fit">
                           Sold Out
                         </Badge>
@@ -244,7 +244,7 @@ export default function StorePremium() {
 
                 <CardFooter className="border-t border-gray-100 p-6">
                   <div className="flex w-full items-center justify-between">
-                    {product.inStock ? (
+                    {product.in_stock ? (
                       <>
                         <Link href={getProductLink(product.id)} className="flex-1">
                           <Button 

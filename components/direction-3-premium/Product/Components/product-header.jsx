@@ -38,7 +38,7 @@ export function ProductHeader({ product }) {
           >
             {product.type}
           </Badge>
-          {product.inStock ? (
+          {product.in_stock ? (
             <Badge
               variant="outline"
               className="border-emerald-200/50 bg-emerald-50/50 text-emerald-700 backdrop-blur-sm"
