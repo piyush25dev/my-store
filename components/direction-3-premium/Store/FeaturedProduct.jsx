@@ -1,9 +1,14 @@
+// components/FeaturedProduct.jsx
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Star } from "lucide-react";
+import { Heart, Star, Loader2 } from "lucide-react";
+import { useWishlist } from "@/lib/hooks/useWishlist";
 
 export function FeaturedProduct({ product, getProductLink }) {
   if (!product) return null;
@@ -37,8 +42,8 @@ export function FeaturedProduct({ product, getProductLink }) {
 
 function ProductImage({ product }) {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-rose-50/50 to-amber-50/50 p-0">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl ">
+    <div className="relative overflow-hidden bg-gradient-to-br from-rose-50/50 to-amber-50/50 p-0 pt-6">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
         <Image
           src={product.image}
           alt={product.name}
@@ -53,56 +58,101 @@ function ProductImage({ product }) {
 }
 
 function ProductDetails({ product, getProductLink }) {
+  const { wishlist, add, remove, isInWishlist } = useWishlist();
+  const [saving, setSaving] = useState(false);
+
+  const saved = wishlist.some(
+  item => String(item.product_id) === String(product.id)
+);
+
+  // Find the wishlist entry id so we can remove it
+  const wishlistEntry = wishlist.find(
+  item => String(item.product_id) === String(product.id)
+);
+
+
+  async function handleWishlistToggle() {
+    setSaving(true);
+    try {
+      if (saved && wishlistEntry) {
+        await remove(wishlistEntry.id);
+      } else {
+        await add(product.id);
+      }
+    } catch (err) {
+      console.error("Wishlist error:", err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
-    <div className="flex flex-col justify-start p-0 h-full">
-  <div className="mb-4 space-y-3">
-    <div className="flex items-center gap-3">
-      <Badge variant="outline" className="border-rose-200 bg-rose-50 text-rose-700">
-        {product.type}
-      </Badge>
+    <div className="flex flex-col justify-start p-0 h-full pt-6">
+      <div className="mb-4 space-y-3">
+        <div className="flex items-center gap-3">
+          <Badge
+            variant="outline"
+            className="border-rose-200 bg-rose-50 text-rose-700"
+          >
+            {product.type}
+          </Badge>
+          {product.in_stock ? (
+            <Badge
+              variant="outline"
+              className="border-emerald-200 bg-emerald-50 text-emerald-700"
+            >
+              In Stock
+            </Badge>
+          ) : (
+            <Badge
+              variant="outline"
+              className="border-gray-200 bg-gray-50 text-gray-700"
+            >
+              Sold Out
+            </Badge>
+          )}
+        </div>
 
-      {product.in_stock ? (
-        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
-          In Stock
-        </Badge>
-      ) : (
-        <Badge variant="outline" className="border-gray-200 bg-gray-50 text-gray-700">
-          Sold Out
-        </Badge>
-      )}
+        <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
+          {product.name}
+        </h3>
+        <p className="text-base md:text-lg text-gray-600">{product.tagline}</p>
+      </div>
+
+      <PriceSection product={product} />
+
+      <div className="flex flex-col gap-3 sm:flex-row mt-4">
+        <Link href={getProductLink(product.id)} className="flex-1">
+          <Button
+            size="lg"
+            className="w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 shadow-lg hover:shadow-xl transition-all duration-300"
+          >
+            View Product Details
+          </Button>
+        </Link>
+
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={handleWishlistToggle}
+          disabled={saving}
+          className={`border-gray-300 hover:bg-gray-50 transition-colors ${
+            saved
+              ? "border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100"
+              : ""
+          }`}
+        >
+          {saving ? (
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : (
+            <Heart
+              className={`mr-2 h-5 w-5 ${saved ? "fill-rose-500 text-rose-500" : ""}`}
+            />
+          )}
+          {saved ? "Saved" : "Save"}
+        </Button>
+      </div>
     </div>
-
-    <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
-      {product.name}
-    </h3>
-
-    <p className="text-base md:text-lg text-gray-600">
-      {product.tagline}
-    </p>
-  </div>
-
-  <PriceSection product={product} />
-
-  <div className="flex flex-col gap-3 sm:flex-row mt-4">
-    <Link href={getProductLink(product.id)} className="flex-1">
-      <Button 
-        size="lg" 
-        className="w-full bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 shadow-lg hover:shadow-xl transition-all duration-300"
-      >
-        View Product Details
-      </Button>
-    </Link>
-
-    <Button 
-      size="lg" 
-      variant="outline" 
-      className="border-gray-300 hover:bg-gray-50"
-    >
-      <Heart className="mr-2 h-5 w-5" />
-      Save
-    </Button>
-  </div>
-</div>
   );
 }
 

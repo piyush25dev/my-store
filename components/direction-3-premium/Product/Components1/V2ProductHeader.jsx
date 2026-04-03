@@ -1,17 +1,14 @@
+// V2ProductHeader.jsx
+"use client";
+
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Heart,
-  Share2,
-  Star,
-  Eye,
-  TrendingUp,
-  Package,
-  Download,
-  Clock,
+  Heart, Share2, Star, Eye, TrendingUp, Package, Download, Clock, Loader2,
 } from "lucide-react";
 import { useState } from "react";
+import { useWishlist } from "@/lib/hooks/useWishlist";
 
 const MOCK_STATS = {
   rating: 4.8,
@@ -23,23 +20,34 @@ const MOCK_STATS = {
 
 export function V2ProductHeader({ product }) {
   const discount = product.originalPrice
-    ? Math.round(
-        ((product.originalPrice - product.price) / product.originalPrice) * 100,
-      )
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
-  const [liked, setLiked] = useState(false);
 
-  const handleLike = () => {
-    setLiked((prev) => !prev);
-  };
+  const { wishlist, add, remove, isInWishlist } = useWishlist();
+  const [saving, setSaving] = useState(false);
+
+  const saved = isInWishlist(product.id);
+  const wishlistEntry = wishlist.find(
+    (item) => String(item.product_id) === String(product.id)
+  );
+
+  async function handleWishlistToggle() {
+    setSaving(true);
+    try {
+      if (saved && wishlistEntry) {
+        await remove(wishlistEntry.id);
+      } else {
+        await add(product.id);
+      }
+    } catch (err) {
+      console.error("Wishlist error:", err);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const handleShare = async () => {
-    const shareData = {
-      title: product.name,
-      text: product.tagline,
-      url: window.location.href,
-    };
-
+    const shareData = { title: product.name, text: product.tagline, url: window.location.href };
     try {
       if (navigator.share) {
         await navigator.share(shareData);
@@ -59,7 +67,6 @@ export function V2ProductHeader({ product }) {
           {/* Image + thumbnails */}
           <div className="md:w-[42%] shrink-0">
             <div className="group relative aspect-square rounded-xl overflow-hidden bg-stone-50 border border-stone-200/60 transition-all duration-300 hover:shadow-[0_0_25px_rgba(0,0,0,0.12)]">
-              {" "}
               <Image
                 src={product?.product_images?.[0]?.image_url || null}
                 alt={product?.product_images?.[0]?.alt_text || product?.name}
@@ -106,16 +113,19 @@ export function V2ProductHeader({ product }) {
                 <Button
                   size="icon"
                   variant="ghost"
-                  onClick={handleLike}
+                  onClick={handleWishlistToggle}
+                  disabled={saving}
                   className={`h-8 w-8 rounded-full transition-all ${
-                    liked
+                    saved
                       ? "text-rose-500 bg-rose-50"
                       : "text-stone-400 hover:text-rose-500 hover:bg-rose-50"
                   }`}
                 >
-                  <Heart
-                    className={`h-4 w-4 ${liked ? "fill-rose-500" : ""}`}
-                  />
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Heart className={`h-4 w-4 ${saved ? "fill-rose-500" : ""}`} />
+                  )}
                 </Button>
                 <Button
                   size="icon"
@@ -139,9 +149,7 @@ export function V2ProductHeader({ product }) {
                     />
                   ))}
                 </div>
-                <span className="font-semibold text-stone-800">
-                  {MOCK_STATS.rating}
-                </span>
+                <span className="font-semibold text-stone-800">{MOCK_STATS.rating}</span>
                 <span className="text-stone-400">({MOCK_STATS.reviews})</span>
               </div>
               <span className="text-stone-300">|</span>
@@ -169,8 +177,7 @@ export function V2ProductHeader({ product }) {
                 )}
                 {discount > 0 && (
                   <Badge className="bg-rose-50 text-rose-600 border border-rose-200 font-sans text-xs">
-                    Save ₹
-                    {(product.originalPrice - product.price).toLocaleString()}
+                    Save ₹{(product.originalPrice - product.price).toLocaleString()}
                   </Badge>
                 )}
               </div>

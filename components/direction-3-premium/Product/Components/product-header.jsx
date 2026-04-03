@@ -1,14 +1,34 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Share2, Star } from "lucide-react";
+import { Heart, Share2, Star, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useWishlist } from "@/lib/hooks/useWishlist";
 
 export function ProductHeader({ product }) {
-  const [liked, setLiked] = useState(false);
+  const { wishlist, add, remove, isInWishlist } = useWishlist();
+  const [saving, setSaving] = useState(false);
 
-  const handleLike = () => {
-    setLiked((prev) => !prev);
-  };
+  const saved = isInWishlist(product.id);
+  const wishlistEntry = wishlist.find(
+    (item) => String(item.product_id) === String(product.id)
+  );
+
+  async function handleWishlistToggle() {
+    setSaving(true);
+    try {
+      if (saved && wishlistEntry) {
+        await remove(wishlistEntry.id);
+      } else {
+        await add(product.id);
+      }
+    } catch (err) {
+      console.error("Wishlist error:", err);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const handleShare = async () => {
     const shareData = {
@@ -16,7 +36,6 @@ export function ProductHeader({ product }) {
       text: product.tagline,
       url: window.location.href,
     };
-
     try {
       if (navigator.share) {
         await navigator.share(shareData);
@@ -28,6 +47,7 @@ export function ProductHeader({ product }) {
       console.error("Share failed:", err);
     }
   };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -58,14 +78,19 @@ export function ProductHeader({ product }) {
           <Button
             size="icon"
             variant="ghost"
-            onClick={handleLike}
+            onClick={handleWishlistToggle}
+            disabled={saving}
             className={`h-8 w-8 rounded-full transition-all ${
-              liked
+              saved
                 ? "text-rose-500 bg-rose-50"
                 : "text-stone-400 hover:text-rose-500 hover:bg-rose-50"
             }`}
           >
-            <Heart className={`h-4 w-4 ${liked ? "fill-rose-500" : ""}`} />
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Heart className={`h-4 w-4 ${saved ? "fill-rose-500" : ""}`} />
+            )}
           </Button>
           <Button
             size="icon"
@@ -86,10 +111,7 @@ export function ProductHeader({ product }) {
       <div className="flex items-center gap-2">
         <div className="flex">
           {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className="h-4 w-4 lg:h-5 lg:w-5 fill-amber-400 text-amber-400"
-            />
+            <Star key={i} className="h-4 w-4 lg:h-5 lg:w-5 fill-amber-400 text-amber-400" />
           ))}
         </div>
         <span className="text-sm text-gray-600">(48 reviews)</span>
