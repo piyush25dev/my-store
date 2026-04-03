@@ -4,7 +4,7 @@ import React from "react";
 
 async function getProduct(slug) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://my-store-tan-nine.vercel.app/";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
     const response = await fetch(`${baseUrl}/api/products/${slug}`, {
       next: { revalidate: 60 },
     });
