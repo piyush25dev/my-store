@@ -79,4 +79,4 @@ export default async function ProductPage({ params }) {
       <ProductIndex product={product} related={relatedProducts} />
     </div>
   );
-}
+} 
