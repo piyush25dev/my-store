@@ -11,7 +11,7 @@ export function ProductTabs({ product }) {
 
   return (
     <Tabs defaultValue="description" className="space-y-6">
-      <TabsList className="bg-transparent border-b border-gray-200/50 w-full justify-start gap-4 lg:gap-8 p-0 h-auto overflow-x-auto">
+      <TabsList className="bg-transparent border-b border-gray-200/50 w-full justify-start gap-4 lg:gap-8 p-0 h-auto flex flex-wrap">
         <TabsTrigger
           value="description"
           className="data-[state=active]:border-b-2 data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 rounded-none px-2 py-4"
