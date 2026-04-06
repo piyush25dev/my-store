@@ -134,7 +134,7 @@ export function V2PurchasePanel({ product }) {
           </p>
           <div className="flex items-baseline gap-2">
             <span className="font-display text-3xl text-white">
-              ₹{(total / 100).toLocaleString()}
+              ₹{total.toLocaleString()}
             </span>
             {product.original_price && (
               <span className="font-sans text-sm text-stone-500 line-through">
