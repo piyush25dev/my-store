@@ -399,7 +399,7 @@ export default function ProductModal({ isOpen, onClose, onSuccess, editProduct =
   const TABS = [{ id: "basic", label: "Basic Info" }, ...(isEdit ? [{ id: "details", label: "Details" }] : [])];
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center sm:p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/10 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center sm:p-4 overflow-y-auto">
       <Card className="relative w-full sm:max-w-2xl border-0 sm:border sm:border-slate-200/60 shadow-2xl flex flex-col min-h-screen sm:min-h-0 sm:max-h-[90vh] sm:rounded-xl rounded-none my-0 sm:my-auto">
         <button onClick={onClose} className="absolute top-4 right-4 z-10 p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
           <X className="w-5 h-5 text-slate-500" />
