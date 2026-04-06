@@ -1,16 +1,32 @@
+// app/auth/login/page.jsx
+// Login page with email/password and OAuth options - with role-based redirects
+
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { Mail, Lock, Loader2, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
+// shadcn UI imports
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, signInWithOAuth, loading, error: authError } = useAuth();
-
+  const { signIn, signInWithOAuth, loading, error: authError, user } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -18,6 +34,34 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [localLoading, setLocalLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuthAndRedirect = async () => {
+      // If user is already authenticated, redirect to their dashboard
+      if (user) {
+        try {
+          // Fetch user profile to get their role
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("user_role")
+            .eq("id", user.id)
+            .single();
+
+          const role = profileData?.user_role || "customer";
+          router.replace(`/dashboard/${role}/overview`);
+        } catch (err) {
+          console.error("Error fetching user role:", err);
+          // Default to customer dashboard on error
+          router.replace("/dashboard/customer/overview");
+        }
+      } else {
+        setCheckingAuth(false);
+      }
+    };
+
+    checkAuthAndRedirect();
+  }, [user, router]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -94,42 +138,43 @@ export default function LoginPage() {
 
   const isLoading = loading || localLoading;
 
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome Back
-          </h1>
-          <p className="text-gray-600">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl font-bold">Welcome Back</CardTitle>
+          <CardDescription>
             Sign in to your Creator Studio account
-          </p>
-        </div>
-
-        {/* Main Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
           {/* Error Message */}
           {(error || authError) && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-              <AlertCircle className="text-red-600 flex-shrink-0 w-5 h-5 mt-0.5" />
-              <p className="text-red-800 text-sm">{error || authError}</p>
-            </div>
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error || authError}</AlertDescription>
+            </Alert>
           )}
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Field */}
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Email Address
-              </label>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-                <input
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
                   id="email"
                   name="email"
                   type="email"
@@ -137,30 +182,25 @@ export default function LoginPage() {
                   onChange={handleInputChange}
                   placeholder="you@example.com"
                   disabled={isLoading}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="pl-9"
                 />
               </div>
             </div>
 
             {/* Password Field */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Password
-                </label>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-700 transition"
+                  className="text-sm text-primary hover:underline"
                 >
                   Forgot?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-                <input
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
@@ -168,64 +208,65 @@ export default function LoginPage() {
                   onChange={handleInputChange}
                   placeholder="••••••••"
                   disabled={isLoading}
-                  className="w-full pl-10 pr-10 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="pl-9 pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={isLoading}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition disabled:opacity-50"
+                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition disabled:opacity-50"
                 >
                   {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <Eye className="w-5 h-5" />
+                    <Eye className="h-4 w-4" />
                   )}
                 </button>
               </div>
             </div>
 
             {/* Sign In Button */}
-            <button
+            <Button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-6 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full"
+              size="lg"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Signing in...
                 </>
               ) : (
                 "Sign In"
               )}
-            </button>
+            </Button>
           </form>
 
           {/* Divider */}
-          <div className="my-6 relative">
+          {/* <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t"></div>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
                 Or continue with
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* OAuth Buttons */}
-          <div className="grid grid-cols-2 gap-3">
-            <button
+          {/* <div className="grid grid-cols-2 gap-3">
+            <Button
               onClick={() => handleOAuthSignIn("google")}
               disabled={isLoading}
-              className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="outline"
             >
               {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <>
-                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -246,19 +287,19 @@ export default function LoginPage() {
                   Google
                 </>
               )}
-            </button>
+            </Button>
 
-            <button
+            <Button
               onClick={() => handleOAuthSignIn("github")}
               disabled={isLoading}
-              className="px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="outline"
             >
               {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <>
                   <svg
-                    className="w-5 h-5"
+                    className="mr-2 h-4 w-4"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
@@ -267,30 +308,21 @@ export default function LoginPage() {
                   GitHub
                 </>
               )}
-            </button>
+            </Button>
+          </div> */}
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-4">
+          <div className="text-center text-sm text-muted-foreground">
+            Don&apos;t have an account?{" "}
+            <Link href="/auth/signup" className="text-primary hover:underline">
+              Sign up
+            </Link>
           </div>
-
-          {/* Sign Up Link */}
-          <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-            <p className="text-gray-600 text-sm">
-              Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/signup"
-                className="text-blue-600 font-semibold hover:text-blue-700 transition"
-              >
-                Sign up
-              </Link>
-            </p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center text-sm text-gray-600">
-          <p>
+          <div className="text-center text-xs text-muted-foreground">
             By signing in, you agree to our Terms of Service and Privacy Policy
-          </p>
-        </div>
-      </div>
+          </div>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

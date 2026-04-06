@@ -112,7 +112,7 @@ export default function DashboardShell({
       <header className="hidden md:block sticky top-0 z-40 backdrop-blur-xl bg-white/70 border-b border-slate-200/60 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4 lg:py-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6 lg:gap-8">
+            {/* <div className="flex items-center gap-6 lg:gap-8 justify-between"> */}
               <div>
                 <h1 className="text-lg lg:text-xl font-semibold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent tracking-tight">
                   {title}
@@ -144,9 +144,9 @@ export default function DashboardShell({
                   );
                 })}
               </nav>
-            </div>
+            {/* </div> */}
 
-            <div className="flex items-center gap-3">
+            {/* <div className="flex items-center gap-3">
               <Button
               onClick={()=> router.push('/')}
               className="bg-gradient-to-r from-slate-900 to-slate-700 hover:from-slate-800 hover:to-slate-600 text-white shadow-lg shadow-slate-900/20 rounded-full px-2 lg:px-4 text-sm">
@@ -154,7 +154,6 @@ export default function DashboardShell({
                 <span className="hidden lg:inline">{actionButton.label}</span>
               </Button>
 
-              {/* Logout Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setShowLogoutMenu(!showLogoutMenu)}
@@ -176,7 +175,7 @@ export default function DashboardShell({
                   </div>
                 )}
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </header>
@@ -192,7 +191,7 @@ export default function DashboardShell({
               {navItems[activeTab]?.label}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <Button
             onClick={()=> router.push('/')}
               size="sm"
@@ -201,7 +200,7 @@ export default function DashboardShell({
               <ActionIcon className="w-4 h-4" />
             </Button>
 
-            {/* Mobile Logout */}
+           
             <button
               onClick={handleLogout}
               className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-full transition-all duration-300"
@@ -209,7 +208,7 @@ export default function DashboardShell({
             >
               <LogOut className="w-4 h-4" />
             </button>
-          </div>
+          </div> */}
         </div>
       </header>
 

@@ -1,3 +1,8 @@
+//app/api/products/[slug]/route.js
+// This API route fetches detailed product information based on the slug provided in the URL.
+// It retrieves the main product data along with all related information such as variants, images, FAQs, highlights, details, and reviews.
+// The slug is extracted from the URL parameters, and the product is fetched from the Supabase database.
+// If the product is found, it returns a comprehensive JSON response containing all relevant data. If not found or if an error occurs, it returns an appropriate error message.
 import { supabase } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
@@ -126,13 +131,13 @@ export async function GET(request, { params }) {
     // Construct response
     const fullProduct = {
       ...product,
-      price: product.price ? product.price / 100 : null, 
+      price: product.price ? product.price  : null, 
       original_price: product.original_price
-        ? product.original_price / 100
+        ? product.original_price 
         : null, 
        product_variants: variants?.map((v) => ({
         ...v,
-        price_modifier: v.price_modifier ? v.price_modifier / 100 : 0,
+        price_modifier: v.price_modifier ? v.price_modifier  : 0,
       })) || [],
       product_images: images || [],
       product_faqs: faqs || [],

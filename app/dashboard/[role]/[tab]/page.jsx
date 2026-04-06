@@ -15,7 +15,7 @@ import CustomerSettingsPage from "@/components/direction-3-premium/Dashboard-Pre
 // CREATOR COMPONENTS
 // ============================================================================
 import CreatorOverviewPage from "@/components/direction-3-premium/Dashboard-Premium/Creator_Dashboard/Components/OverviewPage";
-import CreatorProductsPage from "@/components/direction-3-premium/Dashboard-Premium/Creator_Dashboard/Components/ProductsPage";
+import CreatorProductsPage from "@/components/direction-3-premium/Dashboard-Premium/Creator_Dashboard/Components/Products/ProductsPage";
 import CreatorOrdersPage from "@/components/direction-3-premium/Dashboard-Premium/Creator_Dashboard/Components/OrdersPage";
 import CreatorAnalyticsPage from "@/components/direction-3-premium/Dashboard-Premium/Creator_Dashboard/Components/AnalyticsPage";
 import CreatorSettingsPage from "@/components/direction-3-premium/Dashboard-Premium/Creator_Dashboard/Components/SettingsPage";

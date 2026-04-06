@@ -6,8 +6,20 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Heart, Share2, Star, Eye, TrendingUp, Package, Download, Clock, Loader2,
-  Copy, Check, Twitter, Linkedin, Mail,
+  Heart,
+  Share2,
+  Star,
+  Eye,
+  TrendingUp,
+  Package,
+  Download,
+  Clock,
+  Loader2,
+  Copy,
+  Check,
+  Twitter,
+  Linkedin,
+  Mail,
 } from "lucide-react";
 import { useState } from "react";
 import { useWishlist } from "@/lib/hooks/useWishlist";
@@ -42,7 +54,9 @@ const MOCK_STATS = {
 export function V2ProductHeader({ product }) {
   const router = useRouter();
   const discount = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    ? Math.round(
+        ((product.originalPrice - product.price) / product.originalPrice) * 100,
+      )
     : 0;
 
   const { wishlist, add, remove, isInWishlist } = useWishlist();
@@ -51,7 +65,7 @@ export function V2ProductHeader({ product }) {
 
   const saved = isInWishlist(product.id);
   const wishlistEntry = wishlist.find(
-    (item) => String(item.product_id) === String(product.id)
+    (item) => String(item.product_id) === String(product.id),
   );
 
   async function handleWishlistToggle() {
@@ -148,7 +162,9 @@ export function V2ProductHeader({ product }) {
                     {saving ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <Heart className={`h-4 w-4 ${saved ? "fill-rose-500" : ""}`} />
+                      <Heart
+                        className={`h-4 w-4 ${saved ? "fill-rose-500" : ""}`}
+                      />
                     )}
                   </Button>
                   <ShareDropdown product={product} />
@@ -166,7 +182,9 @@ export function V2ProductHeader({ product }) {
                       />
                     ))}
                   </div>
-                  <span className="font-semibold text-stone-800">{MOCK_STATS.rating}</span>
+                  <span className="font-semibold text-stone-800">
+                    {MOCK_STATS.rating}
+                  </span>
                   <span className="text-stone-400">({MOCK_STATS.reviews})</span>
                 </div>
                 <span className="text-stone-300">|</span>
@@ -185,16 +203,17 @@ export function V2ProductHeader({ product }) {
               <div className="pt-4 border-t border-stone-100">
                 <div className="flex items-baseline gap-3 mb-3">
                   <span className="font-display text-4xl text-stone-900">
-                    ₹{product.price.toLocaleString()}
+                    ₹{(product.price / 100).toLocaleString()}
                   </span>
                   {product.originalPrice && (
                     <span className="font-sans text-lg text-stone-400 line-through">
-                      ₹{product.originalPrice.toLocaleString()}
+                      ₹{(product.originalPrice / 100).toLocaleString()}
                     </span>
                   )}
                   {discount > 0 && (
                     <Badge className="bg-rose-50 text-rose-600 border border-rose-200 font-sans text-xs">
-                      Save ₹{(product.originalPrice - product.price).toLocaleString()}
+                      Save ₹
+                      {(product.originalPrice - product.price).toLocaleString()}
                     </Badge>
                   )}
                 </div>
@@ -224,7 +243,8 @@ export function V2ProductHeader({ product }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Sign In Required</AlertDialogTitle>
             <AlertDialogDescription>
-              Please log in to add items to your wishlist. It only takes a moment!
+              Please log in to add items to your wishlist. It only takes a
+              moment!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -243,9 +263,7 @@ function ShareDropdown({ product }) {
   const [copied, setCopied] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  const productUrl = typeof window !== "undefined"
-    ? window.location.href
-    : "";
+  const productUrl = typeof window !== "undefined" ? window.location.href : "";
 
   const shareText = `Check out ${product.name} - ${product.tagline}`;
 
@@ -280,21 +298,21 @@ function ShareDropdown({ product }) {
   // Social media share functions
   function handleTwitterShare() {
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      shareText
+      shareText,
     )}&url=${encodeURIComponent(productUrl)}`;
     window.open(twitterUrl, "_blank", "width=550,height=420");
   }
 
   function handleLinkedInShare() {
     const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-      productUrl
+      productUrl,
     )}`;
     window.open(linkedinUrl, "_blank", "width=550,height=420");
   }
 
   function handleEmailShare() {
     const emailUrl = `mailto:?subject=${encodeURIComponent(
-      product.name
+      product.name,
     )}&body=${encodeURIComponent(shareText + "\n\n" + productUrl)}`;
     window.location.href = emailUrl;
   }
