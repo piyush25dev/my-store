@@ -49,7 +49,7 @@ export function RelatedProducts({ products, currentProductId }) {
                   <p className="text-sm text-gray-600">{relatedProduct.tagline}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-lg font-bold text-gray-900">
-                      ₹{relatedProduct.price}
+                      ₹{(relatedProduct.price / 100).toLocaleString()}
                     </span>
                     <Button 
                       variant="ghost" 

@@ -6,15 +6,15 @@ export function PricingSection({ product }) {
     <div className="space-y-4">
       <div className="flex items-center gap-3 flex-wrap">
         <span className="text-4xl lg:text-5xl font-bold text-gray-900">
-          ₹{product.price}
+          ₹{(product.price / 100).toLocaleString()}
         </span>
         {product.originalPrice && (
           <>
             <span className="text-xl lg:text-2xl text-gray-400 line-through">
-              ₹{product.originalPrice}
+              ₹{(product.originalPrice / 100).toLocaleString()}
             </span>
             <Badge className="bg-gradient-to-r from-rose-500 to-pink-500 text-white">
-              Save ₹{product.originalPrice - product.price}
+              Save ₹{((product.originalPrice - product.price) / 100).toLocaleString()}
             </Badge>
           </>
         )}

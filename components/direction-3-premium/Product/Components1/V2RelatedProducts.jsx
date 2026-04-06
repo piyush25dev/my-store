@@ -44,11 +44,11 @@ export function V2RelatedProducts({ products }) {
               </p>
               <div className="flex items-baseline gap-1.5 mt-2">
                 <span className="font-display text-sm text-stone-900">
-                  ₹{product.price.toLocaleString()}
+                  ₹{(product.price / 100).toLocaleString()}
                 </span>
                 {product.originalPrice && (
                   <span className="font-sans text-[10px] text-stone-400 line-through">
-                    ₹{product.originalPrice.toLocaleString()}
+                    ₹{(product.originalPrice / 100).toLocaleString()}
                   </span>
                 )}
               </div>

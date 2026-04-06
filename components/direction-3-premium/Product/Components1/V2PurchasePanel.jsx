@@ -67,7 +67,7 @@ export function V2PurchasePanel({ product }) {
   const toggleAddon = (id) =>
     setAddons((prev) => ({ ...prev, [id]: !prev[id] }));
   const addonTotal = (addons.support ? 299 : 0) + (addons.tutorials ? 499 : 0);
-  const total = product.price + addonTotal;
+  const total = (product.price / 100) + addonTotal;
 
   const handleAddToCart = async () => {
     // Check if user is logged in
@@ -134,11 +134,11 @@ export function V2PurchasePanel({ product }) {
           </p>
           <div className="flex items-baseline gap-2">
             <span className="font-display text-3xl text-white">
-              ₹{total.toLocaleString()}
+              ₹{(total / 100).toLocaleString()}
             </span>
             {product.original_price && (
               <span className="font-sans text-sm text-stone-500 line-through">
-                ₹{product.original_price.toLocaleString()}
+                ₹{(product.original_price / 100).toLocaleString()}
               </span>
             )}
           </div>
