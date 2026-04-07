@@ -311,10 +311,7 @@ export default function CheckoutPage() {
       {/* Thank You Modal */}
       <ThankYouModal
         open={showThankYou}
-        onClose={() => {
-          setShowThankYou(false);
-          router.push("/orders");
-        }}
+      onClose={() => setShowThankYou(false)}
         orderDetails={{
           total: grandTotal.toFixed(2),
           itemCount,

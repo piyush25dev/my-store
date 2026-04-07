@@ -6,10 +6,12 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { useRouter } from "next/navigation";
 
 export function ThankYouModal({ open, onClose, orderDetails = {} }) {
   const [isCopied, setIsCopied] = useState(false);
   const [orderId, setOrderId] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     if (open && !orderId) {
@@ -37,14 +39,14 @@ export function ThankYouModal({ open, onClose, orderDetails = {} }) {
   };
 
   const handleContinueShopping = () => {
-    onClose?.();
-    window.location.href = "/";
-  };
+  onClose?.();
+  router.push("/");
+};
 
-  const handleViewOrders = () => {
-    onClose?.();
-    window.location.href = "/dashboard/customer/orders";
-  };
+const handleViewOrders = () => {
+  onClose?.();
+  router.push("/dashboard/customer/orders");
+};
 
   if (!open) return null;
 
