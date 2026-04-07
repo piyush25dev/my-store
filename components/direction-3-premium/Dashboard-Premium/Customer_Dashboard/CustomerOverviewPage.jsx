@@ -225,7 +225,7 @@ export default function CustomerOverviewPage() {
       ]);
 
       // Format recent orders
-      const formattedOrders = orders.slice(0, 3).map((order, index) => {
+      const formattedOrders = orders.slice(0, 7).map((order, index) => {
         const productName =
           order.order_items?.[0]?.products?.name ||
           order.product_name ||
