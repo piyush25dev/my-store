@@ -45,7 +45,7 @@ export default function CartPage() {
   };
 
   const shipping = total > 499 ? 0 : 49;
-  const grandTotal = total + shipping;
+  const grandTotal = (total / 100) + shipping;
 
   if (loading) {
     return (
@@ -250,7 +250,7 @@ export default function CartPage() {
                         Subtotal ({itemCount} items)
                       </span>
                       <span className="text-stone-800 font-medium">
-                        ₹{total.toLocaleString()}
+                        ₹{(total / 100).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between font-sans text-sm">

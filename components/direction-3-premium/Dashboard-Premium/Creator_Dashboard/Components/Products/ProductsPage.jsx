@@ -11,10 +11,21 @@ import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Eye, Loader, Package, Pencil, Plus, Star, TrendingUp, Trash2 } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 import { getToken } from "./utils";
 import { StatusDropdown, DeleteModal } from "./SharedComponents";
 import ProductModal from "./ProductModal";
+
+const ITEMS_PER_PAGE = 10;
 
 export default function ProductsPage() {
   const [products, setProducts]         = useState([]);
@@ -24,7 +35,9 @@ export default function ProductsPage() {
   const [modalOpen, setModalOpen]       = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [currentPage, setCurrentPage]   = useState(1);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { init(); }, []);
 
   const init = async () => {
@@ -51,18 +64,28 @@ export default function ProductsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch products");
       setProducts(data.products || []);
+      setCurrentPage(1); // Reset to page 1 after fetching
     } catch (err) {
       setError(err.message);
     }
   };
 
-  const handleSaved = (saved) =>
+  const handleSaved = (saved) => {
     setProducts((prev) => {
       const exists = prev.find((p) => p.id === saved.id);
       return exists ? prev.map((p) => (p.id === saved.id ? saved : p)) : [saved, ...prev];
     });
+    setCurrentPage(1); // Reset to page 1 after adding product
+  };
 
-  const handleDeleted      = (id)            => setProducts((prev) => prev.filter((p) => p.id !== id));
+  const handleDeleted      = (id)            => {
+    setProducts((prev) => prev.filter((p) => p.id !== id));
+    // Reset to page 1 if current page becomes empty
+    const newTotalPages = Math.ceil((products.length - 1) / ITEMS_PER_PAGE);
+    if (currentPage > newTotalPages && newTotalPages > 0) {
+      setCurrentPage(newTotalPages);
+    }
+  };
   const handleStatusChange = (id, newStatus) => setProducts((prev) => prev.map((p) => p.id === id ? { ...p, status: newStatus } : p));
 
   const openCreate = () => { setEditingProduct(null); setModalOpen(true); };
@@ -75,6 +98,12 @@ export default function ProductsPage() {
     setModalOpen(true);
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIdx = startIdx + ITEMS_PER_PAGE;
+  const paginatedProducts = products.slice(startIdx, endIdx);
+
   // Derived stats
   const totalRevenue   = products.reduce((s, p) => s + (p.total_revenue || 0), 0);
   const publishedCount = products.filter((p) => p.status === "published").length;
@@ -82,6 +111,70 @@ export default function ProductsPage() {
   const avgRating      = products.length
     ? (products.reduce((s, p) => s + (p.average_rating || 0), 0) / products.length).toFixed(2)
     : "0";
+
+  // Generate pagination items
+  const getPaginationItems = () => {
+    const items = [];
+    const maxVisible = 5;
+    const halfWindow = Math.floor(maxVisible / 2);
+
+    let startPage = Math.max(1, currentPage - halfWindow);
+    let endPage = Math.min(totalPages, currentPage + halfWindow);
+
+    if (currentPage <= halfWindow) {
+      endPage = Math.min(totalPages, maxVisible);
+    }
+    if (currentPage > totalPages - halfWindow) {
+      startPage = Math.max(1, totalPages - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+      items.push(
+        <PaginationItem key="1">
+          <PaginationLink onClick={() => setCurrentPage(1)}>1</PaginationLink>
+        </PaginationItem>
+      );
+      if (startPage > 2) {
+        items.push(
+          <PaginationItem key="ellipsis-start">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      items.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            onClick={() => setCurrentPage(i)}
+            isActive={i === currentPage}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        items.push(
+          <PaginationItem key="ellipsis-end">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+      items.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink onClick={() => setCurrentPage(totalPages)}>
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    return items;
+  };
 
   if (authError && !loading) {
     return (
@@ -195,7 +288,7 @@ export default function ProductsPage() {
             </div>
 
             <div className="divide-y divide-slate-100">
-              {products.map((product) => {
+              {paginatedProducts.map((product) => {
                 const primaryImg = product.product_images?.find((i) => i.is_primary) ?? product.product_images?.[0];
                 const thumb = primaryImg?.image_url
                   ? <Image src={primaryImg.image_url} alt={product.name} width={40} height={40} className="object-cover w-full h-full" />
@@ -278,6 +371,34 @@ export default function ProductsPage() {
                 );
               })}
             </div>
+
+            {/* Pagination */}
+            {products.length > ITEMS_PER_PAGE && (
+              <div className="border-t border-slate-100 px-5 py-4 flex items-center justify-between">
+                <p className="text-xs text-slate-500">
+                  Showing <span className="font-semibold">{startIdx + 1}</span> to <span className="font-semibold">{Math.min(endIdx, products.length)}</span> of <span className="font-semibold">{products.length}</span> products
+                </p>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+
+                    {getPaginationItems()}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

@@ -196,8 +196,8 @@ export function DeleteModal({ product, onClose, onDeleted }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border-slate-200/60 shadow-2xl">
+    <div className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md border-slate-200/60 shadow-2xl pt-4">
         <CardContent className="p-6 space-y-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center shrink-0">

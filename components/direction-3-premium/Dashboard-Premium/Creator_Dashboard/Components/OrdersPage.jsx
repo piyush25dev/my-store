@@ -3,7 +3,16 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CheckCircle2, Clock, XCircle, IndianRupee } from "lucide-react";
-import { useOrders } from "@/lib/hooks/useOrders";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { useCreatorOrders } from "@/lib/hooks/useCreatorOrders"; 
 
 const statusConfig = {
   completed:  { style: "bg-emerald-100 text-emerald-700", icon: CheckCircle2 },
@@ -11,6 +20,8 @@ const statusConfig = {
   processing: { style: "bg-amber-100  text-amber-700",    icon: Clock        },
   refunded:   { style: "bg-rose-100   text-rose-700",     icon: XCircle      },
 };
+
+const ITEMS_PER_PAGE = 10;
 
 function normaliseOrder(order) {
   const productName = order.order_items?.[0]?.products?.name ?? "—";
@@ -24,7 +35,7 @@ function normaliseOrder(order) {
     rawId:    order.id,
     customer: order.shipping_address?.name ?? order.user_id?.slice(0, 8) ?? "—",
     product:  productName,
-    amount:   Number(order.total_amount ?? 0),
+    amount:   Number(order.total_amount / 100 ?? 0),
     status:   statusLabel,
     date:     new Date(order.created_at).toLocaleDateString("en-IN", {
                 day: "2-digit", month: "short", year: "numeric",
@@ -33,16 +44,93 @@ function normaliseOrder(order) {
 }
 
 export default function OrdersPage() {
-  const { orders: rawOrders, loading, error } = useOrders();
+  const { orders: rawOrders, loading, error } = useCreatorOrders();
   const [filter, setFilter] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const orders  = rawOrders.map(normaliseOrder);
   const visible = filter === "All" ? orders : orders.filter(o => o.status === filter);
+
+  // Pagination logic
+  const totalPages = Math.ceil(visible.length / ITEMS_PER_PAGE);
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIdx = startIdx + ITEMS_PER_PAGE;
+  const paginatedOrders = visible.slice(startIdx, endIdx);
+
+  // Reset to page 1 when filter changes
+  const handleFilterChange = (newFilter) => {
+    setFilter(newFilter);
+    setCurrentPage(1);
+  };
 
   const total     = orders.reduce((s, o) => s + (o.status !== "Refunded" ? o.amount : 0), 0);
   const completed = orders.filter(o => o.status === "Completed").length;
   const refunded  = orders.filter(o => o.status === "Refunded").length;
   const pending   = orders.filter(o => o.status === "Processing").length;
+
+  // Generate pagination items
+  const getPaginationItems = () => {
+    const items = [];
+    const maxVisible = 10;
+    const halfWindow = Math.floor(maxVisible / 2);
+
+    let startPage = Math.max(1, currentPage - halfWindow);
+    let endPage = Math.min(totalPages, currentPage + halfWindow);
+
+    if (currentPage <= halfWindow) {
+      endPage = Math.min(totalPages, maxVisible);
+    }
+    if (currentPage > totalPages - halfWindow) {
+      startPage = Math.max(1, totalPages - maxVisible + 1);
+    }
+
+    if (startPage > 1) {
+      items.push(
+        <PaginationItem key="1">
+          <PaginationLink onClick={() => setCurrentPage(1)}>1</PaginationLink>
+        </PaginationItem>
+      );
+      if (startPage > 2) {
+        items.push(
+          <PaginationItem key="ellipsis-start">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      items.push(
+        <PaginationItem key={i}>
+          <PaginationLink
+            onClick={() => setCurrentPage(i)}
+            isActive={i === currentPage}
+          >
+            {i}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        items.push(
+          <PaginationItem key="ellipsis-end">
+            <PaginationEllipsis />
+          </PaginationItem>
+        );
+      }
+      items.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink onClick={() => setCurrentPage(totalPages)}>
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    return items;
+  };
 
   return (
     <div className="space-y-6">
@@ -93,7 +181,7 @@ export default function OrdersPage() {
               {["All", "Completed", "Processing", "Refunded"].map(f => (
                 <button
                   key={f}
-                  onClick={() => setFilter(f)}
+                  onClick={() => handleFilterChange(f)}
                   className={`
                     flex-shrink-0 text-[10px] px-3 py-1.5 rounded-full font-medium
                     transition-colors whitespace-nowrap
@@ -137,7 +225,7 @@ export default function OrdersPage() {
 
           {!loading && (
             <div className="divide-y divide-slate-100">
-              {visible.map(order => {
+              {paginatedOrders.map(order => {
                 const { style, icon: StatusIcon } = statusConfig[order.status.toLowerCase()] ?? {};
                 return (
                   <div key={order.rawId} className="hover:bg-slate-50/60 transition-colors">
@@ -183,6 +271,34 @@ export default function OrdersPage() {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!loading && !error && visible.length > 0 && (
+            <div className="border-t border-slate-100 px-5 py-4 flex items-center justify-between">
+              <p className="text-xs text-slate-500">
+                Showing <span className="font-semibold">{startIdx + 1}</span> to <span className="font-semibold">{Math.min(endIdx, visible.length)}</span> of <span className="font-semibold">{visible.length}</span> orders
+              </p>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+
+                  {getPaginationItems()}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
         </CardContent>
