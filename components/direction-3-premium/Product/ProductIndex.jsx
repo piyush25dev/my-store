@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 // V2 Components (Premium Layout - Sidebar)
 import { V2ProductHeader } from "./Components1/V2ProductHeader";
@@ -23,7 +24,48 @@ import { ProductTabs } from './Components/product-tabs';
 import { RelatedProducts } from './Components/related-products';
 
 export default function UnifiedProductPageClient({ product, related }) {
-  const [viewMode, setViewMode] = useState('v2'); 
+  const [viewMode, setViewMode] = useState('v2');
+  const [userRole, setUserRole] = useState(null);
+  const [loadingRole, setLoadingRole] = useState(true);
+
+  // ── Fetch user role ────────────────────────────────────────────────────
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        setLoadingRole(true);
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          setUserRole(null);
+          return;
+        }
+
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("user_role")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching user role:", profileError);
+          setUserRole(null);
+          return;
+        }
+
+        setUserRole(profileData?.user_role || null);
+      } catch (err) {
+        console.error("Error in fetchUserRole:", err);
+        setUserRole(null);
+      } finally {
+        setLoadingRole(false);
+      }
+    };
+
+    fetchUserRole();
+  }, []);
+
+  // ── Check if user is creator or admin ────────────────────────────────
+  const shouldHidePurchasePanel = userRole === 'creator' || userRole === 'admin';
 
   // ──── V2 LAYOUT (Premium) ────
   if (viewMode === 'v2') {
@@ -52,21 +94,27 @@ export default function UnifiedProductPageClient({ product, related }) {
             <DesignToggle viewMode={viewMode} setViewMode={setViewMode} />
           </div>
 
-          {/* 3-column layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* ── Left column (spans 2) ──────────────────────────────────── */}
-            <div className="lg:col-span-2 space-y-8">
+          {/* 
+            Adjusted grid layout:
+            - If purchase panel hidden: content takes 1 column (full width)
+            - If purchase panel visible: 3-column layout (2 cols content + 1 col sidebar)
+          */}
+          <div className={`grid ${shouldHidePurchasePanel ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'} gap-8`}>
+            {/* ── Left/main column ──────────────────────────────────── */}
+            <div className={`space-y-8 ${shouldHidePurchasePanel ? '' : 'lg:col-span-2'}`}>
               <V2ProductHeader product={product} />
               <V2SellerCard />
               <V2ProductTabs product={product} />
               <V2RelatedProducts products={related} />
             </div>
 
-            {/* ── Right column: sticky sidebar ──────────────────────────── */}
-            <div className="space-y-5">
-              <V2PurchasePanel product={product} />
-              <V2StatsPanel />
-            </div>
+            {/* ── Right column: sticky sidebar (only show if not creator/admin) ──────────────── */}
+            {!shouldHidePurchasePanel && !loadingRole && (
+              <div className="space-y-5">
+                <V2PurchasePanel product={product} />
+                <V2StatsPanel />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -112,8 +160,10 @@ export default function UnifiedProductPageClient({ product, related }) {
               <VariantSelector variants={product.variants} />
             )}
 
-            {/* Action Buttons */}
-            <ProductActions product={product} />
+            {/* Action Buttons (only show if NOT creator/admin) */}
+            {!shouldHidePurchasePanel && !loadingRole && (
+              <ProductActions product={product} />
+            )}
 
             {/* Trust Badges */}
             <TrustBadges />
