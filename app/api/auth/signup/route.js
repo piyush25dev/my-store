@@ -9,23 +9,28 @@ export async function POST(request) {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const { email, password, fullName } = await request.json();
+    const { email, password, fullName, userRole } = await request.json(); // ← added userRole
 
     if (!email || !password || !fullName) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // Validate role — only allow known values, default to 'customer' for safety
+    const allowedRoles = ['customer', 'creator'];
+    const role = allowedRoles.includes(userRole) ? userRole : 'customer';
+
     const { data, error } = await supabaseAdmin.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName }, // trigger reads this
+        data: {
+          full_name:  fullName,
+          user_role:  role,   // ← trigger reads raw_user_meta_data->>'user_role'
+        },
       },
     });
 
     if (error) throw error;
-
-    // ✅ No manual profile insert needed — trigger handles it automatically
 
     return Response.json({
       success: true,
