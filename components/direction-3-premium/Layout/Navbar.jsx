@@ -26,6 +26,7 @@ export default function Navbar() {
       .single();
     if (data) setProfile(data);
   };
+
   // ── Fetch session + profile ──────────────────────────────────────────────
   useEffect(() => {
     const init = async () => {
@@ -90,6 +91,9 @@ export default function Navbar() {
         .toUpperCase()
         .slice(0, 2)
     : (user?.email?.[0]?.toUpperCase() ?? "?");
+
+  // ── Check if user is creator or admin ────────────────────────────────────
+  const shouldHideCart = profile?.user_role === 'creator' || profile?.user_role === 'admin';
 
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-xl border-b border-stone-200/60 shadow-sm">
@@ -232,17 +236,21 @@ export default function Navbar() {
                     </div>
                   )}
                 </div>
-                <Link
-                  href="/cart"
-                  className="relative p-2 text-stone-600 hover:text-stone-900 transition-colors"
-                >
-                  <ShoppingCart className="w-5 h-5" />
-                  {itemCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                      {itemCount > 9 ? "9+" : itemCount}
-                    </span>
-                  )}
-                </Link>
+
+                {/* ── Cart Button (only visible for customers, hidden for creators/admins) ── */}
+                {!shouldHideCart && (
+                  <Link
+                    href="/cart"
+                    className="relative p-2 text-stone-600 hover:text-stone-900 transition-colors"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {itemCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-rose-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                        {itemCount > 9 ? "9+" : itemCount}
+                      </span>
+                    )}
+                  </Link>
+                )}
               </>
             ) : (
               // ── Logged out ──

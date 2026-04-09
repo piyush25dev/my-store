@@ -1,12 +1,14 @@
+// ProductHeader.jsx
 "use client";
 
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, Share2, Star, Loader2, Copy, Check, Twitter, Linkedin, Mail } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useWishlist } from "@/lib/hooks/useWishlist";
 import { getAccessToken } from "@/lib/utils/getAccessToken";
+import { supabase } from "@/lib/supabase";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +30,9 @@ import {
 
 export function ProductHeader({ product }) {
   const router = useRouter();
+  const [userRole, setUserRole] = useState(null);
+  const [loadingRole, setLoadingRole] = useState(true);
+
   const { wishlist, add, remove, isInWishlist } = useWishlist();
   const [saving, setSaving] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
@@ -36,6 +41,45 @@ export function ProductHeader({ product }) {
   const wishlistEntry = wishlist.find(
     (item) => String(item.product_id) === String(product.id)
   );
+
+  // Fetch user role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        setLoadingRole(true);
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          setUserRole(null);
+          return;
+        }
+
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("user_role")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching user role:", profileError);
+          setUserRole(null);
+          return;
+        }
+
+        setUserRole(profileData?.user_role || null);
+      } catch (err) {
+        console.error("Error in fetchUserRole:", err);
+        setUserRole(null);
+      } finally {
+        setLoadingRole(false);
+      }
+    };
+
+    fetchUserRole();
+  }, []);
+
+  // Hide wishlist if user is creator or admin
+  const shouldHideWishlist = userRole === 'creator' || userRole === 'admin';
 
   async function handleWishlistToggle() {
     // Check if user is logged in
@@ -94,24 +138,27 @@ export function ProductHeader({ product }) {
             )}
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={handleWishlistToggle}
-              disabled={saving}
-              className={`h-8 w-8 rounded-full transition-all ${
-                saved
-                  ? "text-rose-500 bg-rose-50"
-                  : "text-stone-400 hover:text-rose-500 hover:bg-rose-50"
-              }`}
-            >
-              {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Heart className={`h-4 w-4 ${saved ? "fill-rose-500" : ""}`} />
-              )}
-            </Button>
-            <ShareDropdown product={product} />
+            {/* Wishlist button - only show if NOT creator/admin */}
+            {!shouldHideWishlist && !loadingRole && (
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={handleWishlistToggle}
+                disabled={saving}
+                className={`h-8 w-8 rounded-full transition-all ${
+                  saved
+                    ? "text-rose-500 bg-rose-50"
+                    : "text-stone-400 hover:text-rose-500 hover:bg-rose-50"
+                }`}
+              >
+                {saving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Heart className={`h-4 w-4 ${saved ? "fill-rose-500" : ""}`} />
+                )}
+              </Button>
+            )}
+            <ShareDropdown product={product} shouldHideWishlist={shouldHideWishlist} />
           </div>
         </div>
 
@@ -151,7 +198,7 @@ export function ProductHeader({ product }) {
   );
 }
 
-function ShareDropdown({ product }) {
+function ShareDropdown({ product, shouldHideWishlist }) {
   const [copied, setCopied] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 

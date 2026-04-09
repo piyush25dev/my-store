@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Star, Loader2 } from "lucide-react";
 import { useWishlist } from "@/lib/hooks/useWishlist";
 import { getAccessToken } from "@/lib/utils/getAccessToken";
+import { supabase } from "@/lib/supabase";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,6 +75,44 @@ function ProductDetails({ product, getProductLink }) {
   const { wishlist, add, remove, isInWishlist } = useWishlist();
   const [saving, setSaving] = useState(false);
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  const [loadingRole, setLoadingRole] = useState(true);
+
+  // Fetch user role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        setLoadingRole(true);
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          setUserRole(null);
+          return;
+        }
+
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("user_role")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching user role:", profileError);
+          setUserRole(null);
+          return;
+        }
+
+        setUserRole(profileData?.user_role || null);
+      } catch (err) {
+        console.error("Error in fetchUserRole:", err);
+        setUserRole(null);
+      } finally {
+        setLoadingRole(false);
+      }
+    };
+
+    fetchUserRole();
+  }, []);
 
   const saved = wishlist.some(
     (item) => String(item.product_id) === String(product.id)
@@ -83,6 +122,9 @@ function ProductDetails({ product, getProductLink }) {
   const wishlistEntry = wishlist.find(
     (item) => String(item.product_id) === String(product.id)
   );
+
+  // Hide wishlist if user is creator or admin
+  const shouldHideWishlist = userRole === 'creator' || userRole === 'admin';
 
   async function handleWishlistToggle() {
     // Check if user is logged in
@@ -149,7 +191,7 @@ function ProductDetails({ product, getProductLink }) {
 
         <PriceSection product={product} />
 
-        <div className="flex flex-col gap-3 sm:flex-row mt-4">
+        <div className={`flex flex-col gap-3 sm:flex-row mt-4 ${shouldHideWishlist ? 'sm:flex-col' : ''}`}>
           <Link href={getProductLink(product.id)} className="flex-1">
             <Button
               size="lg"
@@ -159,28 +201,31 @@ function ProductDetails({ product, getProductLink }) {
             </Button>
           </Link>
 
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={handleWishlistToggle}
-            disabled={saving}
-            className={`border-gray-300 hover:bg-gray-50 transition-colors ${
-              saved
-                ? "border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100"
-                : ""
-            }`}
-          >
-            {saving ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-              <Heart
-                className={`mr-2 h-5 w-5 ${
-                  saved ? "fill-rose-500 text-rose-500" : ""
-                }`}
-              />
-            )}
-            {saved ? "Saved" : "Save"}
-          </Button>
+          {/* Only show wishlist button if user is not a creator or admin */}
+          {!shouldHideWishlist && !loadingRole && (
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={handleWishlistToggle}
+              disabled={saving}
+              className={`border-gray-300 hover:bg-gray-50 transition-colors ${
+                saved
+                  ? "border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100"
+                  : ""
+              }`}
+            >
+              {saving ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Heart
+                  className={`mr-2 h-5 w-5 ${
+                    saved ? "fill-rose-500 text-rose-500" : ""
+                  }`}
+                />
+              )}
+              {saved ? "Saved" : "Save"}
+            </Button>
+          )}
         </div>
       </div>
 

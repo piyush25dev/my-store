@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, Share2, Loader2, Copy, Check, Twitter, Linkedin, Mail } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWishlist } from "@/lib/hooks/useWishlist";
 import { getAccessToken } from "@/lib/utils/getAccessToken";
+import { supabase } from "@/lib/supabase";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,10 +32,52 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export function ProductCard({ product, getProductLink }) {
+  const [userRole, setUserRole] = useState(null);
+  const [loadingRole, setLoadingRole] = useState(true);
+
+  // Fetch user role
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        setLoadingRole(true);
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          setUserRole(null);
+          return;
+        }
+
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("user_role")
+          .eq("id", user.id)
+          .single();
+
+        if (profileError) {
+          console.error("Error fetching user role:", profileError);
+          setUserRole(null);
+          return;
+        }
+
+        setUserRole(profileData?.user_role || null);
+      } catch (err) {
+        console.error("Error in fetchUserRole:", err);
+        setUserRole(null);
+      } finally {
+        setLoadingRole(false);
+      }
+    };
+
+    fetchUserRole();
+  }, []);
+
+  // Hide wishlist if user is creator or admin
+  const shouldHideWishlist = userRole === 'creator' || userRole === 'admin';
+
   return (
     <Card className="group overflow-hidden border border-gray-200 bg-white transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
       <CardHeader className="p-0">
-        <ProductCardImage product={product} />
+        <ProductCardImage product={product} shouldHideWishlist={shouldHideWishlist} loadingRole={loadingRole} />
       </CardHeader>
 
       <CardContent className="space-y-4 p-6">
@@ -43,13 +86,13 @@ export function ProductCard({ product, getProductLink }) {
       </CardContent>
 
       <CardFooter className="p-6">
-        <ProductCardActions product={product} getProductLink={getProductLink} />
+        <ProductCardActions product={product} getProductLink={getProductLink} shouldHideWishlist={shouldHideWishlist} />
       </CardFooter>
     </Card>
   );
 }
 
-function ProductCardImage({ product }) {
+function ProductCardImage({ product, shouldHideWishlist, loadingRole }) {
   const router = useRouter();
   const { wishlist, add, remove, isInWishlist } = useWishlist();
   const [saving, setSaving] = useState(false);
@@ -118,30 +161,32 @@ function ProductCardImage({ product }) {
           )}
         </div>
 
-        {/* Heart button — visible on hover, stays visible when saved */}
-        <div
-          className={`absolute right-4 top-4 transition-all duration-300 ${
-            saved ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          }`}
-        >
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={handleWishlistToggle}
-            disabled={saving}
-            className={`h-8 w-8 rounded-full transition-all ${
-              saved
-                ? "text-rose-500 bg-rose-50"
-                : "text-stone-400 bg-white hover:text-rose-500 hover:bg-rose-50"
+        {/* Heart button — only visible if user is NOT creator/admin, and visible on hover or when saved */}
+        {!shouldHideWishlist && !loadingRole && (
+          <div
+            className={`absolute right-4 top-4 transition-all duration-300 ${
+              saved ? "opacity-100" : "opacity-0 group-hover:opacity-100"
             }`}
           >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Heart className={`h-4 w-4 ${saved ? "fill-rose-500" : ""}`} />
-            )}
-          </Button>
-        </div>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={handleWishlistToggle}
+              disabled={saving}
+              className={`h-8 w-8 rounded-full transition-all ${
+                saved
+                  ? "text-rose-500 bg-rose-50"
+                  : "text-stone-400 bg-white hover:text-rose-500 hover:bg-rose-50"
+              }`}
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Heart className={`h-4 w-4 ${saved ? "fill-rose-500" : ""}`} />
+              )}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Login Dialog */}
@@ -189,19 +234,21 @@ function ProductCardPrice({ product }) {
   );
 }
 
-function ProductCardActions({ product, getProductLink }) {
+function ProductCardActions({ product, getProductLink, shouldHideWishlist }) {
   if (product.in_stock) {
     return (
-      <div className="flex w-full items-center justify-between">
-        <Link href={getProductLink(product.id)} className="flex-1">
+      <div className={`flex w-full items-center ${shouldHideWishlist ? 'justify-center' : 'justify-between'}`}>
+        <Link href={getProductLink(product.id)} className={shouldHideWishlist ? 'w-full' : 'flex-1'}>
           <Button
             variant="outline"
-            className="w-full border-gray-300 hover:bg-gray-50 hover:border-gray-400"
+            className={`${shouldHideWishlist ? 'w-full' : 'w-full'} border-gray-300 hover:bg-gray-50 hover:border-gray-400`}
           >
             View Details
           </Button>
         </Link>
-        <ShareButton product={product} getProductLink={getProductLink} />
+        {!shouldHideWishlist && (
+          <ShareButton product={product} getProductLink={getProductLink} />
+        )}
       </div>
     );
   }
