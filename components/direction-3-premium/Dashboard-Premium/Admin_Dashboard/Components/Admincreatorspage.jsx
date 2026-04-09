@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   UserPlus, CheckCircle2, XCircle, Clock, Users,
   MoreHorizontal, AlertCircle, Trash2, Loader, ChevronDown,
-  ShoppingBag, IndianRupee,
+  ShoppingBag, IndianRupee, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import Image from "next/image";
 import { getAccessToken } from "@/lib/utils/getAccessToken";
@@ -37,6 +37,8 @@ const AVATAR_COLORS = [
   "from-teal-500 to-cyan-600",     "from-red-500 to-rose-700",
 ];
 
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function Skeleton({ className = "" }) {
@@ -63,6 +65,102 @@ async function fetchEndpoint(endpoint) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Fetch failed");
   return data;
+}
+
+// ─── usePaginatedTable hook ───────────────────────────────────────────────────
+
+function usePaginatedTable(items, filter) {
+  const [page,     setPage]     = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Reset to page 1 whenever filter or pageSize changes
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { setPage(1); }, [filter, pageSize]);
+
+  const filtered   = filter === "All" ? items : items.filter(i => i.status === filter);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage   = Math.min(page, totalPages);
+  const visible    = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const fromRow    = filtered.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const toRow      = Math.min(safePage * pageSize, filtered.length);
+
+  return { visible, filtered, page: safePage, setPage, pageSize, setPageSize, totalPages, fromRow, toRow };
+}
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+function Pagination({ page, totalPages, onPage }) {
+  if (totalPages <= 1) return null;
+
+  const pages = new Set(
+    [1, totalPages, page, page - 1, page + 1].filter(p => p >= 1 && p <= totalPages)
+  );
+  const sorted = [...pages].sort((a, b) => a - b);
+
+  return (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={() => onPage(page - 1)}
+        disabled={page === 1}
+        className="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
+      >
+        <ChevronLeft className="w-3.5 h-3.5" />
+      </button>
+
+      {sorted.map((p, i) => (
+        <>
+          {i > 0 && sorted[i] - sorted[i - 1] > 1 && (
+            <span key={`ellipsis-${p}`} className="text-xs text-slate-400 px-1">…</span>
+          )}
+          <button
+            key={p}
+            onClick={() => onPage(p)}
+            className={`flex items-center justify-center w-8 h-8 rounded-lg text-xs font-medium transition-colors ${
+              p === page
+                ? "bg-slate-900 text-white border border-slate-900"
+                : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+          >
+            {p}
+          </button>
+        </>
+      ))}
+
+      <button
+        onClick={() => onPage(page + 1)}
+        disabled={page === totalPages}
+        className="flex items-center justify-center w-8 h-8 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-35 disabled:cursor-not-allowed transition-colors"
+      >
+        <ChevronRight className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
+
+// ─── PaginationBar ────────────────────────────────────────────────────────────
+
+function PaginationBar({ page, totalPages, pageSize, setPageSize, setPage, fromRow, toRow, total }) {
+  if (total === 0) return null;
+  return (
+    <div className="flex items-center justify-between flex-wrap gap-3 px-5 py-3 border-t border-slate-200 bg-slate-50">
+      <div className="flex items-center gap-3 flex-wrap">
+        <p className="text-xs text-slate-500">
+          Showing {fromRow}–{toRow} of {total}
+        </p>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-slate-400">Rows</label>
+          <select
+            value={pageSize}
+            onChange={e => setPageSize(Number(e.target.value))}
+            className="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700"
+          >
+            {PAGE_SIZE_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
+          </select>
+        </div>
+      </div>
+      <Pagination page={page} totalPages={totalPages} onPage={setPage} />
+    </div>
+  );
 }
 
 // ─── Avatar ───────────────────────────────────────────────────────────────────
@@ -217,10 +315,8 @@ function DeleteModal({ item, entityLabel, onClose, onDeleted }) {
               disabled={loading}
               onClick={async () => {
                 setLoading(true); setError(null);
-                try {
-                  await onDeleted(item.id);
-                  onClose();
-                } catch (err) { setError(err.message); }
+                try { await onDeleted(item.id); onClose(); }
+                catch (err) { setError(err.message); }
                 finally { setLoading(false); }
               }}
               className="flex-1 px-4 py-2 bg-rose-600 text-white rounded-lg text-sm font-medium hover:bg-rose-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
@@ -238,13 +334,12 @@ function DeleteModal({ item, entityLabel, onClose, onDeleted }) {
 
 function CreatorsTable({ creators, loading, onStatusChange, onDelete }) {
   const [filter, setFilter] = useState("All");
+  const pg = usePaginatedTable(creators, filter);
 
-  const active    = creators.filter(c => c.status === "Active").length;
-  const pending   = creators.filter(c => c.status === "Pending").length;
-  const suspended = creators.filter(c => c.status === "Suspended").length;
+  const active      = creators.filter(c => c.status === "Active").length;
+  const pending     = creators.filter(c => c.status === "Pending").length;
+  const suspended   = creators.filter(c => c.status === "Suspended").length;
   const totalPayout = creators.reduce((s, c) => s + (c.payoutPending || 0), 0);
-
-  const visible = filter === "All" ? creators : creators.filter(c => c.status === filter);
 
   return (
     <div className="space-y-4">
@@ -264,11 +359,11 @@ function CreatorsTable({ creators, loading, onStatusChange, onDelete }) {
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
-          { label: "Total",        value: creators.length,                                     color: "text-slate-900"   },
-          { label: "Active",       value: active,                                               color: "text-emerald-600" },
-          { label: "Pending",      value: pending,                                              color: "text-amber-600"   },
-          { label: "Suspended",    value: suspended,                                            color: "text-rose-600"    },
-          { label: "Payout Queue", value: `₹${((totalPayout/100)/1000).toFixed(0)}k`,          color: "text-blue-600"    },
+          { label: "Total",        value: creators.length,                           color: "text-slate-900"   },
+          { label: "Active",       value: active,                                    color: "text-emerald-600" },
+          { label: "Pending",      value: pending,                                   color: "text-amber-600"   },
+          { label: "Suspended",    value: suspended,                                 color: "text-rose-600"    },
+          { label: "Payout Queue", value: `₹${((totalPayout/100)/1000).toFixed(0)}k`, color: "text-blue-600"  },
         ].map(({ label, value, color }) => (
           <Card key={label} className="border-slate-200/60 bg-white/90 shadow-sm">
             <CardContent className="p-3 sm:p-4">
@@ -314,7 +409,7 @@ function CreatorsTable({ creators, loading, onStatusChange, onDelete }) {
             </div>
           )}
 
-          {!loading && visible.length === 0 && (
+          {!loading && pg.visible.length === 0 && (
             <p className="text-center text-sm text-slate-400 py-10">
               {filter === "All" ? "No creators yet." : `No ${filter.toLowerCase()} creators.`}
             </p>
@@ -322,55 +417,72 @@ function CreatorsTable({ creators, loading, onStatusChange, onDelete }) {
 
           {!loading && (
             <div className="divide-y divide-slate-100">
-              {visible.map((c, i) => (
-                <div key={c.id} className="group hover:bg-slate-50/60 transition-colors">
-                  {/* Mobile */}
-                  <div className="lg:hidden py-4 px-4 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar item={c} index={i} size="w-10 h-10" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                          <p className="font-semibold text-slate-900 text-sm truncate">{c.name}</p>
-                          <StatusDropdown item={c} options={CREATOR_STATUS_OPTIONS} onStatusChange={onStatusChange} />
+              {pg.visible.map((c, i) => {
+                // preserve original index for avatar color consistency
+                const globalIndex = creators.indexOf(c);
+                return (
+                  <div key={c.id} className="group hover:bg-slate-50/60 transition-colors">
+                    {/* Mobile */}
+                    <div className="lg:hidden py-4 px-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar item={c} index={globalIndex} size="w-10 h-10" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                            <p className="font-semibold text-slate-900 text-sm truncate">{c.name}</p>
+                            <StatusDropdown item={c} options={CREATOR_STATUS_OPTIONS} onStatusChange={onStatusChange} />
+                          </div>
+                          <p className="text-[10px] text-slate-400 truncate">{c.handle} · {c.email}</p>
                         </div>
-                        <p className="text-[10px] text-slate-400 truncate">{c.handle} · {c.email}</p>
+                        <button onClick={() => onDelete(c)}
+                          className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-300 hover:text-rose-600 transition-all shrink-0">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                      <button onClick={() => onDelete(c)}
-                        className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-300 hover:text-rose-600 transition-all shrink-0">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div><p className="text-[10px] text-slate-400">Revenue</p><p className="text-sm font-bold text-slate-900">₹{((c.revenue/100)/1000).toFixed(1)}k</p></div>
+                        <div><p className="text-[10px] text-slate-400">Orders</p><p className="text-sm font-bold text-slate-900">{c.orders}</p></div>
+                        <div><p className="text-[10px] text-slate-400">Products</p><p className="text-sm font-bold text-slate-900">{c.products}</p></div>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div><p className="text-[10px] text-slate-400">Revenue</p><p className="text-sm font-bold text-slate-900">₹{((c.revenue/100)/1000).toFixed(1)}k</p></div>
-                      <div><p className="text-[10px] text-slate-400">Orders</p><p className="text-sm font-bold text-slate-900">{c.orders}</p></div>
-                      <div><p className="text-[10px] text-slate-400">Products</p><p className="text-sm font-bold text-slate-900">{c.products}</p></div>
-                    </div>
-                  </div>
-                  {/* Desktop */}
-                  <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr_1fr_auto] gap-4 items-center px-5 py-3.5">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Avatar item={c} index={i} />
+                    {/* Desktop */}
+                    <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr_1fr_auto] gap-4 items-center px-5 py-3.5">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Avatar item={c} index={globalIndex} />
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-900 text-sm truncate">{c.name}</p>
+                          <p className="text-[10px] text-slate-400 truncate">{c.handle} · {c.joined}</p>
+                        </div>
+                      </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-slate-900 text-sm truncate">{c.name}</p>
-                        <p className="text-[10px] text-slate-400 truncate">{c.handle} · {c.joined}</p>
+                        <p className="text-sm text-slate-700 truncate">{c.email}</p>
+                        <p className="text-[10px] text-slate-400">{c.country}</p>
                       </div>
+                      <p className="text-sm font-medium text-slate-700">{c.products}</p>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">₹{((c.revenue/100)/1000).toFixed(1)}k</p>
+                        {c.payoutPending > 0 && <p className="text-[10px] text-amber-600">₹{((c.payoutPending/100)/1000).toFixed(1)}k pending</p>}
+                      </div>
+                      <p className="text-sm text-slate-700">{c.orders}</p>
+                      <StatusDropdown item={c} options={CREATOR_STATUS_OPTIONS} onStatusChange={onStatusChange} />
+                      <ActionsMenu item={c} statusOptions={CREATOR_STATUS_OPTIONS} onDelete={onDelete} onStatusChange={onStatusChange} />
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm text-slate-700 truncate">{c.email}</p>
-                      <p className="text-[10px] text-slate-400">{c.country}</p>
-                    </div>
-                    <p className="text-sm font-medium text-slate-700">{c.products}</p>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">₹{((c.revenue/100)/1000).toFixed(1)}k</p>
-                      {c.payoutPending > 0 && <p className="text-[10px] text-amber-600">₹{((c.payoutPending/100)/1000).toFixed(1)}k pending</p>}
-                    </div>
-                    <p className="text-sm text-slate-700">{c.orders}</p>
-                    <StatusDropdown item={c} options={CREATOR_STATUS_OPTIONS} onStatusChange={onStatusChange} />
-                    <ActionsMenu item={c} statusOptions={CREATOR_STATUS_OPTIONS} onDelete={onDelete} onStatusChange={onStatusChange} />
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+          )}
+
+          {!loading && (
+            <PaginationBar
+              page={pg.page}
+              totalPages={pg.totalPages}
+              pageSize={pg.pageSize}
+              setPageSize={pg.setPageSize}
+              setPage={pg.setPage}
+              fromRow={pg.fromRow}
+              toRow={pg.toRow}
+              total={pg.filtered.length}
+            />
           )}
         </CardContent>
       </Card>
@@ -382,13 +494,11 @@ function CreatorsTable({ creators, loading, onStatusChange, onDelete }) {
 
 function UsersTable({ users, loading, onStatusChange, onDelete }) {
   const [filter, setFilter] = useState("All");
+  const pg = usePaginatedTable(users, filter);
 
-  const active    = users.filter(u => u.status === "Active").length;
-  const suspended = users.filter(u => u.status === "Suspended").length;
-  const totalSpend = users.reduce((s, u) => s + (u.spend || 0), 0);
-  const totalOrders = users.reduce((s, u) => s + (u.orders || 0), 0);
-
-  const visible = filter === "All" ? users : users.filter(u => u.status === filter);
+  const active      = users.filter(u => u.status === "Active").length;
+  const suspended   = users.filter(u => u.status === "Suspended").length;
+  const totalSpend  = users.reduce((s, u) => s + (u.spend  || 0), 0);
 
   return (
     <div className="space-y-4">
@@ -407,10 +517,10 @@ function UsersTable({ users, loading, onStatusChange, onDelete }) {
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Total Users",   value: users.length,                                icon: Users,         color: "text-slate-900"   },
-          { label: "Active",        value: active,                                       icon: CheckCircle2,  color: "text-emerald-600" },
-          { label: "Suspended",     value: suspended,                                    icon: XCircle,       color: "text-rose-600"    },
-          { label: "Total Spend",   value: `₹${((totalSpend/100)/1000).toFixed(1)}k`,   icon: IndianRupee,   color: "text-blue-600"    },
+          { label: "Total Users", value: users.length,                              icon: Users,        color: "text-slate-900"   },
+          { label: "Active",      value: active,                                    icon: CheckCircle2, color: "text-emerald-600" },
+          { label: "Suspended",   value: suspended,                                 icon: XCircle,      color: "text-rose-600"    },
+          { label: "Total Spend", value: `₹${((totalSpend/100)/1000).toFixed(1)}k`, icon: IndianRupee,  color: "text-blue-600"    },
         ].map(({ label, value, icon: Icon, color }) => (
           <Card key={label} className="border-slate-200/60 bg-white/90 shadow-sm">
             <CardContent className="p-3 sm:p-4 flex items-center gap-3">
@@ -462,7 +572,7 @@ function UsersTable({ users, loading, onStatusChange, onDelete }) {
             </div>
           )}
 
-          {!loading && visible.length === 0 && (
+          {!loading && pg.visible.length === 0 && (
             <p className="text-center text-sm text-slate-400 py-10">
               {filter === "All" ? "No users yet." : `No ${filter.toLowerCase()} users.`}
             </p>
@@ -470,58 +580,74 @@ function UsersTable({ users, loading, onStatusChange, onDelete }) {
 
           {!loading && (
             <div className="divide-y divide-slate-100">
-              {visible.map((u, i) => (
-                <div key={u.id} className="group hover:bg-slate-50/60 transition-colors">
-                  {/* Mobile */}
-                  <div className="lg:hidden py-4 px-4 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar item={u} index={i} size="w-10 h-10" />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                          <p className="font-semibold text-slate-900 text-sm truncate">{u.name}</p>
-                          <StatusDropdown item={u} options={USER_STATUS_OPTIONS} onStatusChange={onStatusChange} />
+              {pg.visible.map((u, i) => {
+                const globalIndex = users.indexOf(u);
+                return (
+                  <div key={u.id} className="group hover:bg-slate-50/60 transition-colors">
+                    {/* Mobile */}
+                    <div className="lg:hidden py-4 px-4 space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar item={u} index={globalIndex} size="w-10 h-10" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                            <p className="font-semibold text-slate-900 text-sm truncate">{u.name}</p>
+                            <StatusDropdown item={u} options={USER_STATUS_OPTIONS} onStatusChange={onStatusChange} />
+                          </div>
+                          <p className="text-[10px] text-slate-400 truncate">{u.email} · {u.country}</p>
                         </div>
-                        <p className="text-[10px] text-slate-400 truncate">{u.email} · {u.country}</p>
+                        <button onClick={() => onDelete(u)}
+                          className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-300 hover:text-rose-600 transition-all shrink-0">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                      <button onClick={() => onDelete(u)}
-                        className="p-1.5 rounded-lg hover:bg-rose-50 text-slate-300 hover:text-rose-600 transition-all shrink-0">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="grid grid-cols-2 gap-2 text-center">
+                        <div><p className="text-[10px] text-slate-400">Orders</p><p className="text-sm font-bold text-slate-900">{u.orders}</p></div>
+                        <div><p className="text-[10px] text-slate-400">Total Spend</p><p className="text-sm font-bold text-slate-900">₹{((u.spend/100)/1000).toFixed(1)}k</p></div>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-center">
-                      <div><p className="text-[10px] text-slate-400">Orders</p><p className="text-sm font-bold text-slate-900">{u.orders}</p></div>
-                      <div><p className="text-[10px] text-slate-400">Total Spend</p><p className="text-sm font-bold text-slate-900">₹{((u.spend/100)/1000).toFixed(1)}k</p></div>
-                    </div>
-                  </div>
-                  {/* Desktop */}
-                  <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr_auto] gap-4 items-center px-5 py-3.5">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Avatar item={u} index={i} />
+                    {/* Desktop */}
+                    <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr_auto] gap-4 items-center px-5 py-3.5">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Avatar item={u} index={globalIndex} />
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-900 text-sm truncate">{u.name}</p>
+                          <p className="text-[10px] text-slate-400">Joined {u.joined}</p>
+                        </div>
+                      </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-slate-900 text-sm truncate">{u.name}</p>
-                        <p className="text-[10px] text-slate-400">Joined {u.joined}</p>
+                        <p className="text-sm text-slate-700 truncate">{u.email}</p>
+                        <p className="text-[10px] text-slate-400">{u.country}</p>
                       </div>
+                      <div className="flex items-center gap-1.5">
+                        <ShoppingBag className="w-3.5 h-3.5 text-slate-300" />
+                        <p className="text-sm font-medium text-slate-700">{u.orders}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <IndianRupee className="w-3 h-3 text-slate-300" />
+                        <p className="text-sm font-semibold text-slate-900">
+                          {(u.spend / 100).toLocaleString("en-IN")}
+                        </p>
+                      </div>
+                      <StatusDropdown item={u} options={USER_STATUS_OPTIONS} onStatusChange={onStatusChange} />
+                      <ActionsMenu item={u} statusOptions={USER_STATUS_OPTIONS} onDelete={onDelete} onStatusChange={onStatusChange} />
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm text-slate-700 truncate">{u.email}</p>
-                      <p className="text-[10px] text-slate-400">{u.country}</p>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <ShoppingBag className="w-3.5 h-3.5 text-slate-300" />
-                      <p className="text-sm font-medium text-slate-700">{u.orders}</p>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <IndianRupee className="w-3 h-3 text-slate-300" />
-                      <p className="text-sm font-semibold text-slate-900">
-                        {(u.spend / 100).toLocaleString("en-IN")}
-                      </p>
-                    </div>
-                    <StatusDropdown item={u} options={USER_STATUS_OPTIONS} onStatusChange={onStatusChange} />
-                    <ActionsMenu item={u} statusOptions={USER_STATUS_OPTIONS} onDelete={onDelete} onStatusChange={onStatusChange} />
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+          )}
+
+          {!loading && (
+            <PaginationBar
+              page={pg.page}
+              totalPages={pg.totalPages}
+              pageSize={pg.pageSize}
+              setPageSize={pg.setPageSize}
+              setPage={pg.setPage}
+              fromRow={pg.fromRow}
+              toRow={pg.toRow}
+              total={pg.filtered.length}
+            />
           )}
         </CardContent>
       </Card>
@@ -532,38 +658,27 @@ function UsersTable({ users, loading, onStatusChange, onDelete }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function AdminCreatorsPage() {
-  const [creators,      setCreators]      = useState([]);
-  const [users,         setUsers]         = useState([]);
-  const [loadingC,      setLoadingC]      = useState(true);
-  const [loadingU,      setLoadingU]      = useState(true);
-  const [errorC,        setErrorC]        = useState(null);
-  const [errorU,        setErrorU]        = useState(null);
-  const [deleteTarget,  setDeleteTarget]  = useState(null);  // { item, type: 'creator'|'user' }
+  const [creators,     setCreators]     = useState([]);
+  const [users,        setUsers]        = useState([]);
+  const [loadingC,     setLoadingC]     = useState(true);
+  const [loadingU,     setLoadingU]     = useState(true);
+  const [errorC,       setErrorC]       = useState(null);
+  const [errorU,       setErrorU]       = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
-  useEffect(() => {
-    loadCreators();
-    loadUsers();
-  }, []);
+  useEffect(() => { loadCreators(); loadUsers(); }, []);
 
   async function loadCreators() {
-    try {
-      setLoadingC(true); setErrorC(null);
-      const data = await fetchEndpoint("creators");
-      setCreators(data.creators || []);
-    } catch (err) { setErrorC(err.message); }
+    try { setLoadingC(true); setErrorC(null); const data = await fetchEndpoint("creators"); setCreators(data.creators || []); }
+    catch (err) { setErrorC(err.message); }
     finally { setLoadingC(false); }
   }
 
   async function loadUsers() {
-    try {
-      setLoadingU(true); setErrorU(null);
-      const data = await fetchEndpoint("users");
-      setUsers(data.users || []);
-    } catch (err) { setErrorU(err.message); }
+    try { setLoadingU(true); setErrorU(null); const data = await fetchEndpoint("users"); setUsers(data.users || []); }
+    catch (err) { setErrorU(err.message); }
     finally { setLoadingU(false); }
   }
-
-  // ── Creator actions ─────────────────────────────────────────────────────────
 
   const handleCreatorStatusChange = async (id, newStatus) => {
     setCreators(prev => prev.map(c => c.id === id ? { ...c, status: newStatus } : c));
@@ -575,8 +690,6 @@ export default function AdminCreatorsPage() {
     await apiCall("creators", "DELETE", id);
     setCreators(prev => prev.filter(c => c.id !== id));
   };
-
-  // ── User actions ────────────────────────────────────────────────────────────
 
   const handleUserStatusChange = async (id, newStatus) => {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, status: newStatus } : u));
@@ -593,8 +706,6 @@ export default function AdminCreatorsPage() {
 
   return (
     <div className="space-y-10">
-
-      {/* Error banners */}
       {errorC && (
         <div className="rounded-lg bg-rose-50 border border-rose-200 px-4 py-3 flex gap-3 items-start">
           <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
@@ -608,33 +719,18 @@ export default function AdminCreatorsPage() {
         </div>
       )}
 
-      {/* Creators section */}
-      <CreatorsTable
-        creators={creators}
-        loading={loadingC}
-        onStatusChange={handleCreatorStatusChange}
-        onDelete={(item) => setDeleteTarget({ item, type: "creator" })}
-      />
+      <CreatorsTable creators={creators} loading={loadingC} onStatusChange={handleCreatorStatusChange}
+        onDelete={(item) => setDeleteTarget({ item, type: "creator" })} />
 
-      {/* Divider */}
       <div className="border-t border-slate-200" />
 
-      {/* Users section */}
-      <UsersTable
-        users={users}
-        loading={loadingU}
-        onStatusChange={handleUserStatusChange}
-        onDelete={(item) => setDeleteTarget({ item, type: "user" })}
-      />
+      <UsersTable users={users} loading={loadingU} onStatusChange={handleUserStatusChange}
+        onDelete={(item) => setDeleteTarget({ item, type: "user" })} />
 
-      {/* Shared delete modal */}
       {deleteTarget && (
-        <DeleteModal
-          item={deleteTarget.item}
-          entityLabel={isCreatorDelete ? "creator" : "user"}
+        <DeleteModal item={deleteTarget.item} entityLabel={isCreatorDelete ? "creator" : "user"}
           onClose={() => setDeleteTarget(null)}
-          onDeleted={isCreatorDelete ? handleCreatorDeleted : handleUserDeleted}
-        />
+          onDeleted={isCreatorDelete ? handleCreatorDeleted : handleUserDeleted} />
       )}
     </div>
   );
