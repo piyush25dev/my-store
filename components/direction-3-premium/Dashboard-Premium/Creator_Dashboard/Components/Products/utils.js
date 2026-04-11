@@ -1,24 +1,57 @@
+"use client";
+
 // ─── utils.js ─────────────────────────────────────────────────────────────────
 
 import { supabase } from "@/lib/supabase";
-import { Globe, EyeOff } from "lucide-react";
+import { Globe, EyeOff, Clock, XCircle } from "lucide-react";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 export const STATUS_STYLE = {
   published: "bg-emerald-100 text-emerald-700",
-  draft: "bg-slate-100 text-slate-500",
+  draft:     "bg-slate-100 text-slate-500",
+  pending:   "bg-amber-100 text-amber-700",
+  rejected:  "bg-red-100 text-red-600",
 };
 
+// Statuses only the admin can set — creator sees a static badge, not a dropdown
+export const ADMIN_CONTROLLED_STATUSES = ["pending", "published", "rejected"];
+
 export const STATUS_OPTIONS = [
-  { value: "published", label: "Published", icon: Globe, cls: "text-emerald-600" },
-  { value: "draft", label: "Draft", icon: EyeOff, cls: "text-slate-500" },
+  {
+    value: "published",
+    label: "Published",
+    icon: Globe,
+    cls: "text-emerald-600",
+    description: "Approved & live",
+  },
+  {
+    value: "pending",
+    label: "Pending Review",
+    icon: Clock,
+    cls: "text-amber-600",
+    description: "Awaiting admin approval",
+  },
+  {
+    value: "rejected",
+    label: "Rejected",
+    icon: XCircle,
+    cls: "text-red-600",
+    description: "Rejected by admin",
+  },
+  {
+    value: "draft",
+    label: "Draft",
+    icon: EyeOff,
+    cls: "text-slate-500",
+    description: "Saved, not submitted",
+  },
 ];
 
 export const PRODUCT_TYPES = [
-  { value: "digital", label: "Digital Product" },
+  { value: "digital",  label: "Digital Product" },
   { value: "physical", label: "Physical Product" },
-  { value: "service", label: "Service" },
+  { value: "service",  label: "Service" },
 ];
 
 export const INITIAL_FORM = {
@@ -65,7 +98,10 @@ export function fileToBase64(file) {
 }
 
 export async function getToken() {
-  const { data: { session }, error } = await supabase.auth.getSession();
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
   if (error || !session?.access_token) throw new Error("Not authenticated");
   return session.access_token;
 }

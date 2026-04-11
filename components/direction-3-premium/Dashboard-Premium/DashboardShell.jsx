@@ -35,7 +35,7 @@ const ROLE_TABS = {
   ],
   admin: [
     { label: "Overview", icon: LayoutDashboard, slug: "overview" },
-    { label: "Creators", icon: Users, slug: "creators" },
+    { label: "Users", icon: Users, slug: "users" },
     { label: "Orders", icon: ShoppingCart, slug: "orders" },
     { label: "Analytics", icon: BarChart, slug: "analytics" },
     { label: "Settings", icon: Settings, slug: "settings" },

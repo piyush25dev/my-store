@@ -50,7 +50,7 @@ const ROLE_TABS = {
   },
   admin: {
     overview: AdminOverviewPage,
-    creators: AdminCreatorsPage,
+    users: AdminCreatorsPage,
     orders: AdminOrdersPage,
     analytics: AdminAnalyticsPage,
     settings: AdminSettingsPage,

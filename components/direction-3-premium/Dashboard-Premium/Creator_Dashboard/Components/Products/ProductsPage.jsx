@@ -1,16 +1,23 @@
 "use client";
 
 // ─── ProductsPage.jsx ─────────────────────────────────────────────────────────
-// Root page. Owns all state, fetches data, and composes:
-//   StatusDropdown + DeleteModal  ← from SharedComponents.jsx
-//   ProductModal                  ← from ProductModal.jsx
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Eye, Loader, Package, Pencil, Plus, Star, TrendingUp, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  Eye,
+  Loader,
+  Package,
+  Pencil,
+  Plus,
+  Star,
+  TrendingUp,
+  Trash2,
+} from "lucide-react";
 import {
   Pagination,
   PaginationContent,
@@ -28,14 +35,14 @@ import ProductModal from "./ProductModal";
 const ITEMS_PER_PAGE = 10;
 
 export default function ProductsPage() {
-  const [products, setProducts]         = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [error, setError]               = useState(null);
-  const [authError, setAuthError]       = useState(null);
-  const [modalOpen, setModalOpen]       = useState(false);
+  const [products, setProducts]             = useState([]);
+  const [loading, setLoading]               = useState(true);
+  const [error, setError]                   = useState(null);
+  const [authError, setAuthError]           = useState(null);
+  const [modalOpen, setModalOpen]           = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [currentPage, setCurrentPage]   = useState(1);
+  const [deleteTarget, setDeleteTarget]     = useState(null);
+  const [currentPage, setCurrentPage]       = useState(1);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { init(); }, []);
@@ -64,7 +71,7 @@ export default function ProductsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch products");
       setProducts(data.products || []);
-      setCurrentPage(1); // Reset to page 1 after fetching
+      setCurrentPage(1);
     } catch (err) {
       setError(err.message);
     }
@@ -73,20 +80,25 @@ export default function ProductsPage() {
   const handleSaved = (saved) => {
     setProducts((prev) => {
       const exists = prev.find((p) => p.id === saved.id);
-      return exists ? prev.map((p) => (p.id === saved.id ? saved : p)) : [saved, ...prev];
+      return exists
+        ? prev.map((p) => (p.id === saved.id ? saved : p))
+        : [saved, ...prev];
     });
-    setCurrentPage(1); // Reset to page 1 after adding product
+    setCurrentPage(1);
   };
 
-  const handleDeleted      = (id)            => {
+  const handleDeleted = (id) => {
     setProducts((prev) => prev.filter((p) => p.id !== id));
-    // Reset to page 1 if current page becomes empty
     const newTotalPages = Math.ceil((products.length - 1) / ITEMS_PER_PAGE);
     if (currentPage > newTotalPages && newTotalPages > 0) {
       setCurrentPage(newTotalPages);
     }
   };
-  const handleStatusChange = (id, newStatus) => setProducts((prev) => prev.map((p) => p.id === id ? { ...p, status: newStatus } : p));
+
+  const handleStatusChange = (id, newStatus) =>
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p))
+    );
 
   const openCreate = () => { setEditingProduct(null); setModalOpen(true); };
   const openEdit   = async (product) => {
@@ -94,39 +106,37 @@ export default function ProductsPage() {
       const res  = await fetch(`/api/products/${product.slug}`);
       const data = await res.json();
       setEditingProduct(data.product || product);
-    } catch { setEditingProduct(product); }
+    } catch {
+      setEditingProduct(product);
+    }
     setModalOpen(true);
   };
 
-  // Pagination logic
-  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
-  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIdx = startIdx + ITEMS_PER_PAGE;
+  // Pagination
+  const totalPages        = Math.ceil(products.length / ITEMS_PER_PAGE);
+  const startIdx          = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIdx            = startIdx + ITEMS_PER_PAGE;
   const paginatedProducts = products.slice(startIdx, endIdx);
 
   // Derived stats
   const totalRevenue   = products.reduce((s, p) => s + (p.total_revenue || 0), 0);
   const publishedCount = products.filter((p) => p.status === "published").length;
+  const pendingCount   = products.filter((p) => p.status === "pending").length;
   const totalSales     = products.reduce((s, p) => s + (p.total_sales || 0), 0);
   const avgRating      = products.length
     ? (products.reduce((s, p) => s + (p.average_rating || 0), 0) / products.length).toFixed(2)
     : "0";
 
-  // Generate pagination items
   const getPaginationItems = () => {
-    const items = [];
+    const items      = [];
     const maxVisible = 5;
     const halfWindow = Math.floor(maxVisible / 2);
 
     let startPage = Math.max(1, currentPage - halfWindow);
-    let endPage = Math.min(totalPages, currentPage + halfWindow);
+    let endPage   = Math.min(totalPages, currentPage + halfWindow);
 
-    if (currentPage <= halfWindow) {
-      endPage = Math.min(totalPages, maxVisible);
-    }
-    if (currentPage > totalPages - halfWindow) {
-      startPage = Math.max(1, totalPages - maxVisible + 1);
-    }
+    if (currentPage <= halfWindow)                endPage   = Math.min(totalPages, maxVisible);
+    if (currentPage > totalPages - halfWindow)    startPage = Math.max(1, totalPages - maxVisible + 1);
 
     if (startPage > 1) {
       items.push(
@@ -134,22 +144,14 @@ export default function ProductsPage() {
           <PaginationLink onClick={() => setCurrentPage(1)}>1</PaginationLink>
         </PaginationItem>
       );
-      if (startPage > 2) {
-        items.push(
-          <PaginationItem key="ellipsis-start">
-            <PaginationEllipsis />
-          </PaginationItem>
-        );
-      }
+      if (startPage > 2)
+        items.push(<PaginationItem key="ellipsis-start"><PaginationEllipsis /></PaginationItem>);
     }
 
     for (let i = startPage; i <= endPage; i++) {
       items.push(
         <PaginationItem key={i}>
-          <PaginationLink
-            onClick={() => setCurrentPage(i)}
-            isActive={i === currentPage}
-          >
+          <PaginationLink onClick={() => setCurrentPage(i)} isActive={i === currentPage}>
             {i}
           </PaginationLink>
         </PaginationItem>
@@ -157,18 +159,11 @@ export default function ProductsPage() {
     }
 
     if (endPage < totalPages) {
-      if (endPage < totalPages - 1) {
-        items.push(
-          <PaginationItem key="ellipsis-end">
-            <PaginationEllipsis />
-          </PaginationItem>
-        );
-      }
+      if (endPage < totalPages - 1)
+        items.push(<PaginationItem key="ellipsis-end"><PaginationEllipsis /></PaginationItem>);
       items.push(
         <PaginationItem key={totalPages}>
-          <PaginationLink onClick={() => setCurrentPage(totalPages)}>
-            {totalPages}
-          </PaginationLink>
+          <PaginationLink onClick={() => setCurrentPage(totalPages)}>{totalPages}</PaginationLink>
         </PaginationItem>
       );
     }
@@ -185,8 +180,10 @@ export default function ProductsPage() {
             <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-red-900">{authError}</p>
-              <button onClick={() => (window.location.href = "/login")}
-                className="text-sm font-medium text-red-700 hover:text-red-900 mt-2 underline">
+              <button
+                onClick={() => (window.location.href = "/login")}
+                className="text-sm font-medium text-red-700 hover:text-red-900 mt-2 underline"
+              >
                 Go to login
               </button>
             </div>
@@ -203,10 +200,14 @@ export default function ProductsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-xl sm:text-2xl font-semibold text-slate-900">Your Products</h2>
-          <p className="text-xs text-slate-500 mt-0.5">{publishedCount} published · {products.length} total</p>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {publishedCount} published · {pendingCount} pending review · {products.length} total
+          </p>
         </div>
-        <Button onClick={openCreate}
-          className="bg-gradient-to-r from-slate-900 to-slate-700 text-white rounded-full gap-2 text-sm self-start sm:self-auto hover:from-slate-800 hover:to-slate-600 transition-all">
+        <Button
+          onClick={openCreate}
+          className="bg-gradient-to-r from-slate-900 to-slate-700 text-white rounded-full gap-2 text-sm self-start sm:self-auto hover:from-slate-800 hover:to-slate-600 transition-all"
+        >
           <Plus className="w-4 h-4" /> New Product
         </Button>
       </div>
@@ -218,7 +219,10 @@ export default function ProductsPage() {
           <div>
             <p className="font-medium text-red-900">Failed to load products</p>
             <p className="text-sm text-red-700 mt-1">{error}</p>
-            <button onClick={fetchProducts} className="text-sm font-medium text-red-700 hover:text-red-900 mt-2 underline">
+            <button
+              onClick={fetchProducts}
+              className="text-sm font-medium text-red-700 hover:text-red-900 mt-2 underline"
+            >
               Try again
             </button>
           </div>
@@ -235,7 +239,7 @@ export default function ProductsPage() {
         </Card>
       )}
 
-      {/* Stats cards */}
+      {/* Stats */}
       {!loading && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
@@ -265,8 +269,10 @@ export default function ProductsPage() {
               <h3 className="text-lg font-semibold text-slate-900">No products yet</h3>
               <p className="text-sm text-slate-500 mt-1">Create your first product to start selling</p>
             </div>
-            <Button onClick={openCreate}
-              className="bg-gradient-to-r from-slate-900 to-slate-700 text-white rounded-full gap-2 mt-2">
+            <Button
+              onClick={openCreate}
+              className="bg-gradient-to-r from-slate-900 to-slate-700 text-white rounded-full gap-2 mt-2"
+            >
               <Plus className="w-4 h-4" /> Create Product
             </Button>
           </CardContent>
@@ -280,7 +286,7 @@ export default function ProductsPage() {
             <h3 className="font-semibold text-slate-900">All Products</h3>
           </CardHeader>
           <CardContent className="p-0">
-            {/* Desktop header row */}
+            {/* Desktop header */}
             <div className="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-slate-100 bg-slate-50/50">
               {["Product", "Price", "Sales", "Revenue", "Status", "Actions"].map((h) => (
                 <p key={h} className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{h}</p>
@@ -305,7 +311,11 @@ export default function ProductsPage() {
                           <p className="font-semibold text-slate-900 text-sm truncate">{product.name}</p>
                           <p className="text-[10px] text-slate-400">{product.type}</p>
                         </div>
-                        <StatusDropdown productId={product.id} currentStatus={product.status} onStatusChange={handleStatusChange} />
+                        <StatusDropdown
+                          productId={product.id}
+                          currentStatus={product.status}
+                          onStatusChange={handleStatusChange}
+                        />
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-center">
                         {[
@@ -320,12 +330,16 @@ export default function ProductsPage() {
                         ))}
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => openEdit(product)}
-                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-600 hover:bg-slate-50 transition-colors">
+                        <button
+                          onClick={() => openEdit(product)}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 border border-slate-200 rounded-lg text-xs text-slate-600 hover:bg-slate-50 transition-colors"
+                        >
                           <Pencil className="w-3.5 h-3.5" /> Edit
                         </button>
-                        <button onClick={() => setDeleteTarget(product)}
-                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 border border-red-200 rounded-lg text-xs text-red-600 hover:bg-red-50 transition-colors">
+                        <button
+                          onClick={() => setDeleteTarget(product)}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 border border-red-200 rounded-lg text-xs text-red-600 hover:bg-red-50 transition-colors"
+                        >
                           <Trash2 className="w-3.5 h-3.5" /> Delete
                         </button>
                       </div>
@@ -337,13 +351,19 @@ export default function ProductsPage() {
                         <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 border border-slate-200/60 shrink-0">{thumb}</div>
                         <div className="min-w-0">
                           <p className="font-semibold text-slate-900 text-sm truncate">{product.name}</p>
-                          <p className="text-[10px] text-slate-400">{product.type} · {new Date(product.created_at).toLocaleDateString()}</p>
+                          <p className="text-[10px] text-slate-400">
+                            {product.type} · {new Date(product.created_at).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-900 text-sm">₹{Math.round(product.price / 100).toLocaleString()}</p>
+                        <p className="font-semibold text-slate-900 text-sm">
+                          ₹{Math.round(product.price / 100).toLocaleString()}
+                        </p>
                         {product.original_price && (
-                          <p className="text-[10px] text-slate-400 line-through">₹{Math.round(product.original_price / 100).toLocaleString()}</p>
+                          <p className="text-[10px] text-slate-400 line-through">
+                            ₹{Math.round(product.original_price / 100).toLocaleString()}
+                          </p>
                         )}
                       </div>
                       <div>
@@ -351,17 +371,29 @@ export default function ProductsPage() {
                         <p className="text-[10px] text-slate-400">0% conv.</p>
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-900 text-sm">₹{((product.total_revenue || 0) / 1000).toFixed(0)}k</p>
+                        <p className="font-semibold text-slate-900 text-sm">
+                          ₹{((product.total_revenue || 0) / 1000).toFixed(0)}k
+                        </p>
                         <p className="text-[10px] text-slate-400">{product.views || 0} views</p>
                       </div>
-                      <StatusDropdown productId={product.id} currentStatus={product.status} onStatusChange={handleStatusChange} />
+                      <StatusDropdown
+                        productId={product.id}
+                        currentStatus={product.status}
+                        onStatusChange={handleStatusChange}
+                      />
                       <div className="flex items-center gap-1">
-                        <button onClick={() => openEdit(product)} title="Edit product"
-                          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-all">
+                        <button
+                          onClick={() => openEdit(product)}
+                          title="Edit product"
+                          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-all"
+                        >
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => setDeleteTarget(product)} title="Delete product"
-                          className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all">
+                        <button
+                          onClick={() => setDeleteTarget(product)}
+                          title="Delete product"
+                          className="p-1.5 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-600 transition-all"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -376,22 +408,23 @@ export default function ProductsPage() {
             {products.length > ITEMS_PER_PAGE && (
               <div className="border-t border-slate-100 px-5 py-4 flex items-center justify-between">
                 <p className="text-xs text-slate-500">
-                  Showing <span className="font-semibold">{startIdx + 1}</span> to <span className="font-semibold">{Math.min(endIdx, products.length)}</span> of <span className="font-semibold">{products.length}</span> products
+                  Showing{" "}
+                  <span className="font-semibold">{startIdx + 1}</span> to{" "}
+                  <span className="font-semibold">{Math.min(endIdx, products.length)}</span> of{" "}
+                  <span className="font-semibold">{products.length}</span> products
                 </p>
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                         className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                       />
                     </PaginationItem>
-
                     {getPaginationItems()}
-
                     <PaginationItem>
                       <PaginationNext
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                         className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                       />
                     </PaginationItem>

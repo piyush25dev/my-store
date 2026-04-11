@@ -280,15 +280,20 @@ function ActionsMenu({ item, statusOptions, onDelete, onStatusChange }) {
 
 // ─── Delete Confirm Modal ─────────────────────────────────────────────────────
 
+import { createPortal } from "react-dom";
+
 function DeleteModal({ item, entityLabel, onClose, onDeleted }) {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
 
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border-slate-200/60 shadow-2xl">
+  const modal = (
+    <div
+      className="fixed inset-0 backdrop-blur-sm z-[9999] flex items-center justify-center"
+      style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}
+    >
+      <Card className="w-full max-w-md border-slate-200/60 shadow-2xl mx-4">
         <CardContent className="p-6 space-y-4">
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-3 pt-4">
             <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center shrink-0">
               <Trash2 className="w-5 h-5 text-rose-600" />
             </div>
@@ -328,6 +333,8 @@ function DeleteModal({ item, entityLabel, onClose, onDeleted }) {
       </Card>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
 
 // ─── Creators Table ───────────────────────────────────────────────────────────
@@ -351,9 +358,9 @@ function CreatorsTable({ creators, loading, onStatusChange, onDelete }) {
             {loading ? "Loading…" : `${creators.length} total · ${active} active · ${pending} pending review`}
           </p>
         </div>
-        <Button className="bg-gradient-to-r from-slate-900 to-slate-700 text-white rounded-full gap-2 text-sm self-start sm:self-auto">
+        {/* <Button className="bg-gradient-to-r from-slate-900 to-slate-700 text-white rounded-full gap-2 text-sm self-start sm:self-auto">
           <UserPlus className="w-4 h-4" /> Invite Creator
-        </Button>
+        </Button> */}
       </div>
 
       {/* Summary cards */}
@@ -541,7 +548,7 @@ function UsersTable({ users, loading, onStatusChange, onDelete }) {
       <Card className="border-slate-200/60 shadow-sm bg-white/90">
         <CardHeader className="border-b border-slate-100 pb-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h3 className="font-semibold text-slate-900">All Users</h3>
+            <h3 className="font-semibold text-slate-900">All Customers</h3>
             <div className="flex gap-1.5 flex-wrap">
               {["All", "Active", "Suspended"].map(f => (
                 <button key={f} onClick={() => setFilter(f)}
@@ -555,7 +562,7 @@ function UsersTable({ users, loading, onStatusChange, onDelete }) {
         <CardContent className="p-0">
           {/* Desktop header */}
           <div className="hidden lg:grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr_auto] gap-4 px-5 py-3 bg-slate-50/50 border-b border-slate-100">
-            {["User", "Contact", "Orders", "Total Spend", "Status", ""].map(h => (
+            {["Customer", "Contact", "Orders", "Total Spend", "Status", ""].map(h => (
               <p key={h} className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{h}</p>
             ))}
           </div>

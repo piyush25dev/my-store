@@ -1,19 +1,19 @@
 "use client";
 
 // ─── ProductModal.jsx ─────────────────────────────────────────────────────────
-// Full create / edit modal. Contains all form field groups and detail editors
-// as local sub-components since they're only used here.
-//
-// Props:
-//   isOpen      – boolean
-//   onClose     – () => void
-//   onSuccess   – (savedProduct) => void
-//   editProduct – product object | null (null = create mode)
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { AlertCircle, Loader, Plus, X } from "lucide-react";
-import { INITIAL_FORM, PRODUCT_TYPES, Field, fileToBase64, generateSlug, getToken, inputCls } from "./utils";
+import { AlertCircle, Clock, Loader, Plus, X } from "lucide-react";
+import {
+  INITIAL_FORM,
+  PRODUCT_TYPES,
+  Field,
+  fileToBase64,
+  generateSlug,
+  getToken,
+  inputCls,
+} from "./utils";
 import { ImageUploadPanel } from "./SharedComponents";
 
 // ─── Type-specific field groups ───────────────────────────────────────────────
@@ -331,30 +331,43 @@ export default function ProductModal({ isOpen, onClose, onSuccess, editProduct =
       const payload = {
         ...formData,
         price: Math.round(priceNum * 100),
-        original_price: formData.original_price ? Math.round(parseFloat(formData.original_price) * 100) : null,
+        original_price: formData.original_price
+          ? Math.round(parseFloat(formData.original_price) * 100)
+          : null,
         dimensions: {
           length: formData.dimensions.length ? parseFloat(formData.dimensions.length) : null,
           width:  formData.dimensions.width  ? parseFloat(formData.dimensions.width)  : null,
           height: formData.dimensions.height ? parseFloat(formData.dimensions.height) : null,
         },
         images: [
-          ...existingImgs.map((img) => ({ image_url: img.image_url, alt_text: img.alt_text, is_primary: img.is_primary })),
+          ...existingImgs.map((img) => ({
+            image_url: img.image_url, alt_text: img.alt_text, is_primary: img.is_primary,
+          })),
           ...base64Images,
         ],
       };
-      ["stock_quantity", "delivery_days", "weight_grams"].forEach((k) => { if (payload[k] === "") payload[k] = null; });
+      ["stock_quantity", "delivery_days", "weight_grams"].forEach((k) => {
+        if (payload[k] === "") payload[k] = null;
+      });
       if (!payload.digital_delivery_url) payload.digital_delivery_url = null;
 
-      const res  = await fetch(isEdit ? `/api/products?id=${editProduct.id}` : "/api/products", {
-        method: isEdit ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(payload),
-      });
+      const res  = await fetch(
+        isEdit ? `/api/products?id=${editProduct.id}` : "/api/products",
+        {
+          method: isEdit ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload),
+        }
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || `Failed to ${isEdit ? "update" : "create"} product`);
 
       onSuccess(data.product);
-      if (!isEdit) { onClose(); } else { setActiveTab("details"); }
+      if (!isEdit) {
+        onClose();
+      } else {
+        setActiveTab("details");
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -382,11 +395,20 @@ export default function ProductModal({ isOpen, onClose, onSuccess, editProduct =
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify({ items }),
           }).then(async (res) => {
-            if (!res.ok) { const d = await res.json(); throw new Error(`${resource}: ${d.error || "save failed"}`); }
-          }),
+            if (!res.ok) {
+              const d = await res.json();
+              throw new Error(`${resource}: ${d.error || "save failed"}`);
+            }
+          })
         ),
       );
-      onSuccess({ ...editProduct, product_faqs: faqs, product_highlights: highlights, product_details: details, product_variants: variants });
+      onSuccess({
+        ...editProduct,
+        product_faqs: faqs,
+        product_highlights: highlights,
+        product_details: details,
+        product_variants: variants,
+      });
     } catch (err) {
       setDetailsError(err.message);
     } finally {
@@ -396,12 +418,18 @@ export default function ProductModal({ isOpen, onClose, onSuccess, editProduct =
 
   if (!isOpen) return null;
   const isLoading = loading || uploadingImages;
-  const TABS = [{ id: "basic", label: "Basic Info" }, ...(isEdit ? [{ id: "details", label: "Details" }] : [])];
+  const TABS = [
+    { id: "basic",   label: "Basic Info" },
+    ...(isEdit ? [{ id: "details", label: "Details" }] : []),
+  ];
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm z-50 flex items-start sm:items-center justify-center sm:p-4 overflow-y-auto">
       <Card className="relative w-full sm:max-w-2xl border-0 sm:border sm:border-slate-200/60 shadow-2xl flex flex-col min-h-screen sm:min-h-0 sm:max-h-[90vh] sm:rounded-xl rounded-none my-0 sm:my-auto">
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 p-1.5 hover:bg-slate-100 rounded-lg transition-colors">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 p-1.5 hover:bg-slate-100 rounded-lg transition-colors"
+        >
           <X className="w-5 h-5 text-slate-500" />
         </button>
 
@@ -411,9 +439,15 @@ export default function ProductModal({ isOpen, onClose, onSuccess, editProduct =
           </h2>
           <div className="flex gap-0 border-b border-slate-100 -mx-6 px-6">
             {TABS.map((tab) => (
-              <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)}
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
                 className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px
-                  ${activeTab === tab.id ? "border-slate-900 text-slate-900" : "border-transparent text-slate-400 hover:text-slate-600"}`}>
+                  ${activeTab === tab.id
+                    ? "border-slate-900 text-slate-900"
+                    : "border-transparent text-slate-400 hover:text-slate-600"}`}
+              >
                 {tab.label}
               </button>
             ))}
@@ -425,12 +459,26 @@ export default function ProductModal({ isOpen, onClose, onSuccess, editProduct =
           {/* ── Tab 1: Basic Info ── */}
           {activeTab === "basic" && (
             <>
+              {/* Review flow notice — only shown when creating a new product */}
+              {!isEdit && (
+                <div className="mb-5 p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-2.5">
+                  <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Products require admin approval</p>
+                    <p className="text-xs text-amber-700 mt-0.5">
+                      Your product will be submitted for review and published once approved.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {error && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
                   <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                   <p className="text-sm text-red-700">{error}</p>
                 </div>
               )}
+
               <form onSubmit={handleSubmit} className="space-y-5">
                 <Field label="Product Name" required>
                   <input type="text" name="name" value={formData.name} onChange={handleNameChange}
@@ -453,7 +501,9 @@ export default function ProductModal({ isOpen, onClose, onSuccess, editProduct =
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <Field label="Product Type" required>
                     <select name="type" value={formData.type} onChange={handleChange} className={inputCls}>
-                      {PRODUCT_TYPES.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      {PRODUCT_TYPES.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
                     </select>
                   </Field>
                   <Field label="Price (₹)" required>
@@ -481,7 +531,8 @@ export default function ProductModal({ isOpen, onClose, onSuccess, editProduct =
 
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-slate-700">
-                    Product Images <span className="ml-1.5 text-xs font-normal text-slate-400">(optional)</span>
+                    Product Images{" "}
+                    <span className="ml-1.5 text-xs font-normal text-slate-400">(optional)</span>
                   </p>
                   <ImageUploadPanel images={images} onChange={setImages} />
                 </div>
@@ -494,7 +545,11 @@ export default function ProductModal({ isOpen, onClose, onSuccess, editProduct =
                   <button type="submit" disabled={isLoading}
                     className="flex-1 px-4 py-2.5 bg-gradient-to-r from-slate-900 to-slate-700 text-white rounded-lg text-sm font-medium hover:from-slate-800 hover:to-slate-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
                     {isLoading && <Loader className="w-4 h-4 animate-spin" />}
-                    {uploadingImages ? "Uploading…" : loading ? (isEdit ? "Saving…" : "Creating…") : (isEdit ? "Save Basic Info" : "Create Product")}
+                    {uploadingImages
+                      ? "Uploading…"
+                      : loading
+                        ? isEdit ? "Saving…" : "Submitting…"
+                        : isEdit ? "Save Basic Info" : "Submit for Review"}
                   </button>
                 </div>
               </form>
@@ -518,7 +573,9 @@ export default function ProductModal({ isOpen, onClose, onSuccess, editProduct =
               ].map(({ label, badge, badgeCls, Editor, state, setState }) => (
                 <section key={label}>
                   <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                    <span className={`w-5 h-5 ${badgeCls} rounded text-[10px] font-bold flex items-center justify-center`}>{badge}</span>
+                    <span className={`w-5 h-5 ${badgeCls} rounded text-[10px] font-bold flex items-center justify-center`}>
+                      {badge}
+                    </span>
                     {label}
                   </h3>
                   <Editor items={state} onChange={setState} />

@@ -20,7 +20,7 @@ const ROLE_CONFIG = {
   admin: {
     label: 'Admin',
     isAdmin: true,
-    tabs: ['overview', 'creators', 'orders', 'analytics', 'settings', 'moderation'],
+    tabs: ['overview', 'users', 'orders', 'analytics', 'settings', 'moderation'],
   },
 };
 
