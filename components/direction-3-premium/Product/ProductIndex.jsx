@@ -103,7 +103,7 @@ export default function UnifiedProductPageClient({ product, related }) {
             {/* ── Left/main column ──────────────────────────────────── */}
             <div className={`space-y-8 ${shouldHidePurchasePanel ? '' : 'lg:col-span-2'}`}>
               <V2ProductHeader product={product} />
-              <V2SellerCard />
+              <V2SellerCard product={product} />
               <V2ProductTabs product={product} />
               <V2RelatedProducts products={related} />
             </div>

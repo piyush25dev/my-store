@@ -21,7 +21,7 @@ const STATS = [
 
 // ── Seller Card ───────────────────────────────────────────────────────────────
 
-export function V2SellerCard() {
+export function V2SellerCard({ product }) {
   return (
     <div className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-5 sm:p-6">
       <p className="font-sans text-[10px] uppercase tracking-widest text-stone-400 mb-4">About the Seller</p>
@@ -35,7 +35,7 @@ export function V2SellerCard() {
 
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1">
-              <h3 className="font-display text-stone-900 text-base">{SELLER.name}</h3>
+              <h3 className="font-display text-stone-900 text-base">{product.business_name}</h3>
               <Badge
                 variant="outline"
                 className="border-rose-200 bg-rose-50/50 text-rose-700 font-sans text-[10px] gap-1"

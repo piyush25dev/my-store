@@ -1,16 +1,10 @@
 //app/api/products/[slug]/route.js
-// This API route fetches detailed product information based on the slug provided in the URL.
-// It retrieves the main product data along with all related information such as variants, images, FAQs, highlights, details, and reviews.
-// The slug is extracted from the URL parameters, and the product is fetched from the Supabase database.
-// If the product is found, it returns a comprehensive JSON response containing all relevant data. If not found or if an error occurs, it returns an appropriate error message.
 import { supabase } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
 /**
  * GET /api/products/[slug]
  * Fetch detailed product information by slug
- *
- * Fix: Properly extract slug from params
  */
 export async function GET(request, { params }) {
   try {
@@ -32,10 +26,13 @@ export async function GET(request, { params }) {
 
     console.log("Fetching product with slug:", slug);
 
-    // Fetch product
+    // 👇 MODIFY: Fetch product with creator profile information
     const { data: product, error: productError } = await supabase
       .from("products")
-      .select("*")
+      .select(`
+        *,
+        creator:profiles!creator_id(id, business_name, display_name, avatar_url, email)
+      `)
       .eq("slug", slug)
       .eq("status", "published")
       .single();
@@ -128,16 +125,21 @@ export async function GET(request, { params }) {
         ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
         : 0;
 
-    // Construct response
+    // 👇 MODIFY: Construct response with business_name
     const fullProduct = {
       ...product,
-      price: product.price ? product.price  : null, 
+      // Flatten creator info for easier access
+      business_name: product.creator?.business_name || null,
+      creator: product.creator, // Keep full creator object if needed
+      
+      price: product.price ? product.price : null, 
       original_price: product.original_price
         ? product.original_price 
         : null, 
-       product_variants: variants?.map((v) => ({
+      
+      product_variants: variants?.map((v) => ({
         ...v,
-        price_modifier: v.price_modifier ? v.price_modifier  : 0,
+        price_modifier: v.price_modifier ? v.price_modifier : 0,
       })) || [],
       product_images: images || [],
       product_faqs: faqs || [],

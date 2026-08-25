@@ -179,7 +179,11 @@ export async function GET(request) {
 
     let query = supabase
       .from('products')
-      .select(`*, product_images!left(id, image_url, alt_text, is_primary)`, { count: 'exact' });
+      .select(`
+        *,
+        product_images!left(id, image_url, alt_text, is_primary),
+        creator:profiles!creator_id(id, business_name, display_name, avatar_url)
+      `, { count: 'exact' });
 
     if (creatorOnly && userId) {
       query = query.eq('creator_id', userId);
@@ -196,8 +200,14 @@ export async function GET(request) {
 
     if (error) throw error;
 
-    return NextResponse.json({
-      products: data || [],
+    const transformedProducts = data?.map(product => ({
+      ...product,
+      business_name: product.creator?.business_name || null,
+      creator: product.creator  // Keep if you want full creator info
+    })) || [];
+
+     return NextResponse.json({
+      products: transformedProducts,
       pagination: { page, limit, total: count || 0, pages: Math.ceil((count || 0) / limit) },
     });
   } catch (error) {
@@ -216,6 +226,17 @@ export async function POST(request) {
     try { auth = await requireAuth(request); }
     catch (err) { return NextResponse.json({ error: err.message }, { status: err.status || 401 }); }
     const { supabase, user } = auth;
+
+     const { data: userProfile, error: profileError } = await supabase
+      .from('profiles')  // or wherever you store user profiles
+      .select('business_name')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
+      // Continue anyway, business_name will be null
+    }
 
     let body;
     try { body = await request.json(); }
@@ -242,7 +263,11 @@ export async function POST(request) {
     }
 
     // Force status to 'pending' regardless of what the client sends
-    const productData = { ...buildProductData(body, user.id), status: 'pending' };
+    const productData = { 
+      ...buildProductData(body, user.id), 
+      status: 'pending',
+      business_name: userProfile?.business_name || null  
+    };
 
     const { data: product, error: createError } = await supabase
       .from('products')
