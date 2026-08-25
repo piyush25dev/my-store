@@ -27,12 +27,22 @@ export default function ProductPage({ params }) {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    // Reset document title on component unmount
+    return () => {
+      document.title = "Creator Studio";
+    };
+  }, []);
+
+  useEffect(() => {
     if (!slug) { setNotFound(true); return; }
 
     async function load() {
       try {
         const p = await getProduct(slug);
         if (!p) { setNotFound(true); return; }
+        
+        // Update document title with product name
+        document.title = `${p.name} | Creator Studio`;
         
         const rel = await getRelatedProducts(p.id);
         setProduct(p);

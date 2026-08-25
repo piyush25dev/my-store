@@ -165,7 +165,7 @@ export function ProductHeader({ product }) {
         <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-gray-900">
           {product.name}
         </h1>
-        <p className="text-lg lg:text-xl text-gray-600">{product.tagline}</p>
+        <p className="text-lg lg:text-xl text-gray-600">{product?.short_description}</p>
 
         <div className="flex items-center gap-2">
           <div className="flex">

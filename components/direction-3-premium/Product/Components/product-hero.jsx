@@ -1,17 +1,22 @@
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star } from "lucide-react";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 export function ProductHero({ product }) {
+  const [selectedImage, setSelectedImage] = useState(0);
+  const images = product?.product_images || [];
+  const hasMultipleImages = images.length > 1;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <Card className="overflow-hidden border-0 shadow-2xl shadow-gray-100/50 bg-gradient-to-br from-gray-50/50 to-white">
         <CardContent className="!p-0">
           <div className="relative aspect-[4/3] lg:aspect-square overflow-hidden rounded-xl">
             <Image
-              src={product?.product_images?.[0]?.image_url || null}
-              alt={product?.product_images?.[0]?.alt_text || product?.name}
+              src={images[selectedImage]?.image_url || images[0]?.image_url || null}
+              alt={images[selectedImage]?.alt_text || product?.name}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
@@ -25,43 +30,60 @@ export function ProductHero({ product }) {
                 Premium
               </Badge>
             </div>
+
+            {/* Navigation arrows for multiple images */}
+            {hasMultipleImages && (
+              <>
+                <button
+                  onClick={() => setSelectedImage((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                >
+                  <ChevronLeft className="h-5 w-5 text-gray-700" />
+                </button>
+                <button
+                  onClick={() => setSelectedImage((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                >
+                  <ChevronRight className="h-5 w-5 text-gray-700" />
+                </button>
+              </>
+            )}
+
+            {/* Image counter */}
+            {hasMultipleImages && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm text-white text-xs font-medium">
+                {selectedImage + 1} / {images.length}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Thumbnails in a single horizontal line */}
-      {product?.product_images?.length > 1 && (
-        <div className="flex gap-3">
-          {product.product_images.slice(1).map((image, index) => {
-            const totalThumbnails = product.product_images.slice(1).length;
-            
-            // Calculate width based on number of thumbnails
-            let widthClass = 'flex-1';
-            if (totalThumbnails === 1) {
-              widthClass = 'w-full';
-            } else if (totalThumbnails === 2) {
-              widthClass = 'w-1/2';
-            } else if (totalThumbnails === 3) {
-              widthClass = 'w-1/3';
-            } else {
-              widthClass = 'w-1/4';
-            }
-            
-            return (
-              <div
-                key={image.id || index}
-                className={`relative aspect-square ${widthClass} rounded-xl bg-gradient-to-br from-gray-100/50 to-gray-200/50 border border-gray-200/50 hover:border-gray-300 transition-all cursor-pointer backdrop-blur-sm overflow-hidden group`}
-              >
-                <Image
-                  src={image.image_url}
-                  alt={image.alt_text || `${product?.name} thumbnail ${index + 1}`}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-110"
-                  sizes={`(max-width: 768px) ${100/totalThumbnails}vw, ${100/totalThumbnails}vw`}
-                />
-              </div>
-            );
-          })}
+      {/* Thumbnails - Responsive grid layout */}
+      {hasMultipleImages && (
+        <div className="grid grid-cols-4 gap-3">
+          {images.map((image, index) => (
+            <div
+              key={image.id || index}
+              onClick={() => setSelectedImage(index)}
+              className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer transition-all duration-300 ${
+                selectedImage === index
+                  ? "ring-2 ring-rose-500 ring-offset-2 shadow-lg"
+                  : "hover:scale-105"
+              }`}
+            >
+              <Image
+                src={image.image_url}
+                alt={image.alt_text || `${product?.name} thumbnail ${index + 1}`}
+                fill
+                className="object-cover transition-transform duration-300 hover:scale-110"
+                sizes="(max-width: 768px) 25vw, 10vw"
+              />
+              {selectedImage === index && (
+                <div className="absolute inset-0 bg-rose-500/10 border-2 border-rose-500 rounded-xl" />
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

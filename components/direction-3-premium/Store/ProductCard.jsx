@@ -3,10 +3,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, Share2, Loader2, Copy, Check, Twitter, Linkedin, Mail } from "lucide-react";
+import { Heart, Share2, Loader2, Copy, Check, Twitter, Linkedin, Mail, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWishlist } from "@/lib/hooks/useWishlist";
@@ -33,66 +32,50 @@ import {
 
 export function ProductCard({ product, getProductLink }) {
   const [userRole, setUserRole] = useState(null);
-  const [loadingRole, setLoadingRole] = useState(true);
 
-  // Fetch user role
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
-        setLoadingRole(true);
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
         
-        if (userError || !user) {
-          setUserRole(null);
-          return;
-        }
-
-        const { data: profileData, error: profileError } = await supabase
+        const { data: profile } = await supabase
           .from("profiles")
           .select("user_role")
           .eq("id", user.id)
           .single();
-
-        if (profileError) {
-          console.error("Error fetching user role:", profileError);
-          setUserRole(null);
-          return;
-        }
-
-        setUserRole(profileData?.user_role || null);
+        
+        setUserRole(profile?.user_role || null);
       } catch (err) {
-        console.error("Error in fetchUserRole:", err);
-        setUserRole(null);
-      } finally {
-        setLoadingRole(false);
+        console.error("Error fetching user role:", err);
       }
     };
-
     fetchUserRole();
   }, []);
 
-  // Hide wishlist if user is creator or admin
   const shouldHideWishlist = userRole === 'creator' || userRole === 'admin';
 
   return (
-    <Card className="group overflow-hidden border border-gray-200 bg-white transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-      <CardHeader className="p-0">
-        <ProductCardImage product={product} shouldHideWishlist={shouldHideWishlist} loadingRole={loadingRole} />
-      </CardHeader>
-
-      <CardContent className="space-y-4 p-6">
+    <div className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden border border-gray-100/50 hover:border-gray-200/80">
+      <ProductCardImage 
+        product={product} 
+        shouldHideWishlist={shouldHideWishlist} 
+      />
+      
+      <div className="p-5">
         <ProductCardInfo product={product} />
         <ProductCardPrice product={product} />
-      </CardContent>
-
-      <CardFooter className="p-6">
-        <ProductCardActions product={product} getProductLink={getProductLink} shouldHideWishlist={shouldHideWishlist} />
-      </CardFooter>
-    </Card>
+        <ProductCardActions 
+          product={product} 
+          getProductLink={getProductLink} 
+          shouldHideWishlist={shouldHideWishlist} 
+        />
+      </div>
+    </div>
   );
 }
 
-function ProductCardImage({ product, shouldHideWishlist, loadingRole }) {
+function ProductCardImage({ product, shouldHideWishlist }) {
   const router = useRouter();
   const { wishlist, add, remove, isInWishlist } = useWishlist();
   const [saving, setSaving] = useState(false);
@@ -107,11 +90,9 @@ function ProductCardImage({ product, shouldHideWishlist, loadingRole }) {
     e.preventDefault();
     e.stopPropagation();
 
-    // Check if user is logged in
     try {
       await getAccessToken();
     } catch (err) {
-      // User is not authenticated
       setShowLoginDialog(true);
       return;
     }
@@ -130,14 +111,9 @@ function ProductCardImage({ product, shouldHideWishlist, loadingRole }) {
     }
   }
 
-  function handleLoginRedirect() {
-    router.push("/auth/login");
-    setShowLoginDialog(false);
-  }
-
   return (
     <>
-      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+      <div className="relative aspect-[4/3] overflow-hidden bg-gray-50">
         <Image
           src={product.image}
           alt={product.name}
@@ -146,61 +122,56 @@ function ProductCardImage({ product, shouldHideWishlist, loadingRole }) {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
 
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-        {/* Top badges */}
-        <div className="absolute left-4 top-4 flex flex-col gap-2">
-          <Badge className="w-fit border-0 bg-white/90 !text-black group-hover:!text-white group-hover:!bg-black transition-colors duration-300 shadow-sm">
+        {/* Category Badge */}
+        <div className="absolute left-4 top-4">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-white bg-black/60 backdrop-blur-sm rounded-full">
+            <Sparkles className="h-3 w-3" />
             {product.type}
-          </Badge>
-          {!product.in_stock && (
-            <Badge variant="destructive" className="w-fit">
-              Sold Out
-            </Badge>
-          )}
+          </span>
         </div>
 
-        {/* Heart button — only visible if user is NOT creator/admin, and visible on hover or when saved */}
-        {!shouldHideWishlist && !loadingRole && (
-          <div
-            className={`absolute right-4 top-4 transition-all duration-300 ${
-              saved ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+        {/* Stock Badge */}
+        <div className="absolute right-4 top-4">
+          <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full backdrop-blur-sm ${
+            product.in_stock 
+              ? "bg-emerald-500/90 text-white" 
+              : "bg-gray-500/90 text-white"
+          }`}>
+            {product.in_stock ? "In Stock" : "Sold Out"}
+          </span>
+        </div>
+
+        {/* Wishlist Button */}
+        {!shouldHideWishlist && (
+          <button
+            onClick={handleWishlistToggle}
+            disabled={saving}
+            className={`absolute right-4 bottom-4 p-2.5 rounded-full backdrop-blur-sm transition-all duration-300 ${
+              saved 
+                ? "bg-rose-500 text-white scale-110" 
+                : "bg-white/90 text-gray-600 hover:bg-white hover:scale-110"
             }`}
           >
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={handleWishlistToggle}
-              disabled={saving}
-              className={`h-8 w-8 rounded-full transition-all ${
-                saved
-                  ? "text-rose-500 bg-rose-50"
-                  : "text-stone-400 bg-white hover:text-rose-500 hover:bg-rose-50"
-              }`}
-            >
-              {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Heart className={`h-4 w-4 ${saved ? "fill-rose-500" : ""}`} />
-              )}
-            </Button>
-          </div>
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Heart className={`h-4 w-4 ${saved ? "fill-white" : ""}`} />
+            )}
+          </button>
         )}
       </div>
 
-      {/* Login Dialog */}
       <AlertDialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Sign In Required</AlertDialogTitle>
             <AlertDialogDescription>
-              Please log in to add items to your wishlist. It only takes a moment!
+              Please log in to add items to your wishlist.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLoginRedirect}>
+            <AlertDialogAction onClick={() => router.push("/auth/login")}>
               Go to Login
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -212,83 +183,71 @@ function ProductCardImage({ product, shouldHideWishlist, loadingRole }) {
 
 function ProductCardInfo({ product }) {
   return (
-    <div>
-      <h4 className="mb-1 text-lg font-semibold text-gray-900">{product.name}</h4>
-      <p className="text-sm text-gray-600">{product.tagline}</p>
+    <div className="mb-3">
+      <h3 className="text-base font-semibold text-gray-900 line-clamp-1">
+        {product.name}
+      </h3>
+      <p className="text-sm text-gray-500 line-clamp-2 mt-0.5">
+        {product.tagline}
+      </p>
     </div>
   );
 }
 
 function ProductCardPrice({ product }) {
+  const discount = product.originalPrice 
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0;
+
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <span className="text-2xl font-bold text-gray-900">₹{product.price}</span>
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-baseline gap-2">
+        <span className="text-xl font-bold text-gray-900">₹{product.price}</span>
         {product.originalPrice && (
-          <span className="ml-2 text-sm text-gray-400 line-through">
+          <span className="text-sm text-gray-400 line-through">
             ₹{product.originalPrice}
           </span>
         )}
       </div>
+      {discount > 0 && (
+        <Badge className="bg-rose-500 hover:bg-rose-600 border-0 text-white">
+          -{discount}%
+        </Badge>
+      )}
     </div>
   );
 }
 
 function ProductCardActions({ product, getProductLink, shouldHideWishlist }) {
-  if (product.in_stock) {
+  if (!product.in_stock) {
     return (
-      <div className={`flex w-full items-center ${shouldHideWishlist ? 'justify-center' : 'justify-between'}`}>
-        <Link href={getProductLink(product.id)} className={shouldHideWishlist ? 'w-full' : 'flex-1'}>
-          <Button
-            variant="outline"
-            className={`${shouldHideWishlist ? 'w-full' : 'w-full'} border-gray-300 hover:bg-gray-50 hover:border-gray-400`}
-          >
-            View Details
-          </Button>
-        </Link>
-        {!shouldHideWishlist && (
-          <ShareButton product={product} getProductLink={getProductLink} />
-        )}
-      </div>
+      <Button disabled className="w-full bg-gray-100 text-gray-400 hover:bg-gray-100 rounded-lg cursor-not-allowed">
+        Out of Stock
+      </Button>
     );
   }
 
   return (
-    <Button disabled className="w-full bg-gray-100 text-gray-500 hover:bg-gray-100">
-      Currently Unavailable
-    </Button>
+    <div className="flex items-center gap-2">
+      <Link href={getProductLink(product.id)} className="flex-1">
+        <Button className="w-full bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-all duration-300">
+          View Details
+        </Button>
+      </Link>
+      {!shouldHideWishlist && <ShareButton product={product} getProductLink={getProductLink} />}
+    </div>
   );
 }
 
 function ShareButton({ product, getProductLink }) {
   const [copied, setCopied] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-
   const productUrl = typeof window !== "undefined" 
     ? `${window.location.origin}${getProductLink(product.id)}` 
     : "";
 
   const shareText = `Check out ${product.name} - ${product.tagline}`;
 
-  // Handle native share API (mobile)
-  async function handleNativeShare() {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: product.name,
-          text: shareText,
-          url: productUrl,
-        });
-      } catch (err) {
-        if (err.name !== "AbortError") {
-          console.error("Share error:", err);
-        }
-      }
-    }
-  }
-
-  // Copy link to clipboard
-  async function handleCopyLink() {
+  const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(productUrl);
       setCopied(true);
@@ -296,35 +255,19 @@ function ShareButton({ product, getProductLink }) {
     } catch (err) {
       console.error("Copy error:", err);
     }
-  }
+  };
 
-  // Social media share functions
-  function handleTwitterShare() {
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      shareText
-    )}&url=${encodeURIComponent(productUrl)}`;
-    window.open(twitterUrl, "_blank", "width=550,height=420");
-  }
-
-  function handleLinkedInShare() {
-    const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-      productUrl
-    )}`;
-    window.open(linkedinUrl, "_blank", "width=550,height=420");
-  }
-
-  function handleEmailShare() {
-    const emailUrl = `mailto:?subject=${encodeURIComponent(
-      product.name
-    )}&body=${encodeURIComponent(shareText + "\n\n" + productUrl)}`;
-    window.location.href = emailUrl;
-  }
+  const shareLinks = {
+    twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(productUrl)}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(productUrl)}`,
+    email: `mailto:?subject=${encodeURIComponent(product.name)}&body=${encodeURIComponent(shareText + "\n\n" + productUrl)}`,
+  };
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost" className="ml-2 h-10 w-10">
-          <Share2 className="h-4 w-4" />
+        <Button size="icon" variant="outline" className="rounded-lg border-gray-200 hover:border-gray-300 hover:bg-gray-50 h-10 w-10">
+          <Share2 className="h-4 w-4 text-gray-600" />
         </Button>
       </DropdownMenuTrigger>
 
@@ -334,18 +277,6 @@ function ShareButton({ product, getProductLink }) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
-        {/* Native Share (shown only on devices that support it) */}
-        {typeof navigator !== "undefined" && navigator.share && (
-          <>
-            <DropdownMenuItem onClick={handleNativeShare}>
-              <Share2 className="mr-2 h-4 w-4" />
-              <span>Share</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-          </>
-        )}
-
-        {/* Copy Link */}
         <DropdownMenuItem onClick={handleCopyLink}>
           {copied ? (
             <>
@@ -361,23 +292,21 @@ function ShareButton({ product, getProductLink }) {
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
-
-        {/* Social Media Options */}
         <DropdownMenuLabel className="text-xs font-semibold text-gray-500">
           Share On
         </DropdownMenuLabel>
 
-        <DropdownMenuItem onClick={handleTwitterShare}>
+        <DropdownMenuItem onClick={() => window.open(shareLinks.twitter, "_blank", "width=550,height=420")}>
           <Twitter className="mr-2 h-4 w-4 text-blue-400" />
           <span>Twitter</span>
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={handleLinkedInShare}>
+        <DropdownMenuItem onClick={() => window.open(shareLinks.linkedin, "_blank", "width=550,height=420")}>
           <Linkedin className="mr-2 h-4 w-4 text-blue-700" />
           <span>LinkedIn</span>
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={handleEmailShare}>
+        <DropdownMenuItem onClick={() => window.location.href = shareLinks.email}>
           <Mail className="mr-2 h-4 w-4 text-gray-600" />
           <span>Email</span>
         </DropdownMenuItem>

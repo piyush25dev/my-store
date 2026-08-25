@@ -20,6 +20,8 @@ import {
   Twitter,
   Linkedin,
   Mail,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useWishlist } from "@/lib/hooks/useWishlist";
@@ -56,6 +58,7 @@ export function V2ProductHeader({ product }) {
   const router = useRouter();
   const [userRole, setUserRole] = useState(null);
   const [loadingRole, setLoadingRole] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(0);
 
   const discount = product.originalPrice
     ? Math.round(
@@ -152,8 +155,8 @@ export function V2ProductHeader({ product }) {
             <div className="md:w-[42%] shrink-0">
               <div className="group relative aspect-square rounded-xl overflow-hidden bg-stone-50 border border-stone-200/60 transition-all duration-300 hover:shadow-[0_0_25px_rgba(0,0,0,0.12)]">
                 <Image
-                  src={product?.product_images?.[0]?.image_url || null}
-                  alt={product?.product_images?.[0]?.alt_text || product?.name}
+                  src={product?.product_images?.[selectedImage]?.image_url || product?.product_images?.[0]?.image_url || null}
+                  alt={product?.product_images?.[selectedImage]?.alt_text || product?.name}
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, 40vw"
@@ -164,26 +167,66 @@ export function V2ProductHeader({ product }) {
                     -{discount}%
                   </Badge>
                 )}
+
+                {/* Navigation arrows for multiple images */}
+                {product?.product_images?.length > 1 && (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedImage((prev) => 
+                          prev === 0 ? product.product_images.length - 1 : prev - 1
+                        );
+                      }}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <ChevronLeft className="h-4 w-4 text-gray-700" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedImage((prev) => 
+                          prev === product.product_images.length - 1 ? 0 : prev + 1
+                        );
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <ChevronRight className="h-4 w-4 text-gray-700" />
+                    </button>
+                  </>
+                )}
+
+                {/* Image counter */}
+                {product?.product_images?.length > 1 && (
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm text-white text-[10px] font-medium">
+                    {selectedImage + 1} / {product.product_images.length}
+                  </div>
+                )}
               </div>
 
               {/* Thumbnails in a single horizontal line */}
               {product?.product_images?.length > 1 && (
                 <div className="flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-stone-300 scrollbar-track-transparent">
-                  {product.product_images.slice(1).map((image, index) => (
+                  {product.product_images.map((image, index) => (
                     <div
                       key={image.id || index}
-                      className="relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-lg bg-stone-100 border border-stone-200/60 cursor-pointer hover:border-rose-300 transition-colors overflow-hidden"
+                      onClick={() => setSelectedImage(index)}
+                      className={`relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-lg border-2 transition-all cursor-pointer overflow-hidden ${
+                        selectedImage === index
+                          ? "border-rose-500 shadow-lg shadow-rose-500/20"
+                          : "border-stone-200/60 hover:border-stone-300"
+                      }`}
                     >
                       <Image
                         src={image.image_url}
-                        alt={
-                          image.alt_text ||
-                          `${product?.name} thumbnail ${index + 1}`
-                        }
+                        alt={image.alt_text || `${product?.name} thumbnail ${index + 1}`}
                         fill
                         sizes="(max-width: 640px) 80px, 96px"
                         className="object-cover transition-transform duration-300 hover:scale-110"
                       />
+                      {selectedImage === index && (
+                        <div className="absolute inset-0 ring-2 ring-rose-500 ring-inset rounded-lg" />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -201,11 +244,11 @@ export function V2ProductHeader({ product }) {
                   >
                     {product.type}
                   </Badge>
-                  <h1 className="font-display text-2xl sm:text-3xl text-stone-900 leading-tight">
+                  <h1 className="font-display text-2xl sm:text-3xl font-semibold text-stone-900 leading-tight">
                     {product.name}
                   </h1>
                   <p className="font-sans text-sm text-stone-500 mt-1.5 leading-relaxed">
-                    {product.tagline}
+                    {product?.short_description}
                   </p>
                 </div>
                 <div className="flex gap-1 shrink-0">
@@ -326,6 +369,7 @@ export function V2ProductHeader({ product }) {
   );
 }
 
+// ShareDropdown component remains the same
 function ShareDropdown({ product, shouldHideWishlist }) {
   const [copied, setCopied] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
