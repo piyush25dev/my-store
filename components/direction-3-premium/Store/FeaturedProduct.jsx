@@ -83,8 +83,11 @@ function ProductDetails({ product, getProductLink }) {
     const fetchUserRole = async () => {
       try {
         setLoadingRole(true);
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
         if (userError || !user) {
           setUserRole(null);
           return;
@@ -115,16 +118,16 @@ function ProductDetails({ product, getProductLink }) {
   }, []);
 
   const saved = wishlist.some(
-    (item) => String(item.product_id) === String(product.id)
+    (item) => String(item.product_id) === String(product.id),
   );
 
   // Find the wishlist entry id so we can remove it
   const wishlistEntry = wishlist.find(
-    (item) => String(item.product_id) === String(product.id)
+    (item) => String(item.product_id) === String(product.id),
   );
 
   // Hide wishlist if user is creator or admin
-  const shouldHideWishlist = userRole === 'creator' || userRole === 'admin';
+  const shouldHideWishlist = userRole === "creator" || userRole === "admin";
 
   async function handleWishlistToggle() {
     // Check if user is logged in
@@ -157,7 +160,8 @@ function ProductDetails({ product, getProductLink }) {
 
   return (
     <>
-      <div className="flex flex-col justify-start p-0 h-full">
+      <div className="flex flex-col justify-between h-full p-0">
+        {" "}
         <div className="mb-4 space-y-3">
           <div className="flex items-center gap-3">
             <Badge
@@ -186,12 +190,14 @@ function ProductDetails({ product, getProductLink }) {
           <h3 className="text-2xl md:text-3xl font-bold text-gray-900">
             {product.name}
           </h3>
-          <p className="text-base md:text-lg text-gray-600">{product.tagline}</p>
+          <p className="text-base md:text-lg text-gray-600">
+            {product.tagline}
+          </p>
+          <PriceSection product={product} />
         </div>
-
-        <PriceSection product={product} />
-
-        <div className={`flex flex-col gap-3 sm:flex-row mt-4 ${shouldHideWishlist ? 'sm:flex-col' : ''}`}>
+        <div
+          className={`flex flex-col gap-3 sm:flex-row mt-4 ${shouldHideWishlist ? "sm:flex-col" : ""}`}
+        >
           <Link href={getProductLink(product.id)} className="flex-1">
             <Button
               size="lg"
@@ -235,7 +241,8 @@ function ProductDetails({ product, getProductLink }) {
           <AlertDialogHeader>
             <AlertDialogTitle>Sign In Required</AlertDialogTitle>
             <AlertDialogDescription>
-              Please log in to add items to your wishlist. It only takes a moment!
+              Please log in to add items to your wishlist. It only takes a
+              moment!
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

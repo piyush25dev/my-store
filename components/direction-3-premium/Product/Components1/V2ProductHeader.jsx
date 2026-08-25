@@ -77,8 +77,11 @@ export function V2ProductHeader({ product }) {
     const fetchUserRole = async () => {
       try {
         setLoadingRole(true);
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
         if (userError || !user) {
           setUserRole(null);
           return;
@@ -109,7 +112,7 @@ export function V2ProductHeader({ product }) {
   }, []);
 
   // Hide wishlist if user is creator or admin
-  const shouldHideWishlist = userRole === 'creator' || userRole === 'admin';
+  const shouldHideWishlist = userRole === "creator" || userRole === "admin";
 
   async function handleWishlistToggle() {
     // Check if user is logged in
@@ -162,14 +165,29 @@ export function V2ProductHeader({ product }) {
                   </Badge>
                 )}
               </div>
-              <div className="grid grid-cols-4 gap-2 mt-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-lg bg-stone-100 border border-stone-200/60 cursor-pointer hover:border-rose-300 transition-colors"
-                  />
-                ))}
-              </div>
+
+              {/* Thumbnails in a single horizontal line */}
+              {product?.product_images?.length > 1 && (
+                <div className="flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-stone-300 scrollbar-track-transparent">
+                  {product.product_images.slice(1).map((image, index) => (
+                    <div
+                      key={image.id || index}
+                      className="relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-lg bg-stone-100 border border-stone-200/60 cursor-pointer hover:border-rose-300 transition-colors overflow-hidden"
+                    >
+                      <Image
+                        src={image.image_url}
+                        alt={
+                          image.alt_text ||
+                          `${product?.name} thumbnail ${index + 1}`
+                        }
+                        fill
+                        sizes="(max-width: 640px) 80px, 96px"
+                        className="object-cover transition-transform duration-300 hover:scale-110"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Info */}
@@ -213,7 +231,10 @@ export function V2ProductHeader({ product }) {
                       )}
                     </Button>
                   )}
-                  <ShareDropdown product={product} shouldHideWishlist={shouldHideWishlist} />
+                  <ShareDropdown
+                    product={product}
+                    shouldHideWishlist={shouldHideWishlist}
+                  />
                 </div>
               </div>
 

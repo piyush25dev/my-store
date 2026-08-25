@@ -29,14 +29,41 @@ export function ProductHero({ product }) {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-3 gap-3">
-        {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="aspect-square rounded-xl bg-gradient-to-br from-gray-100/50 to-gray-200/50 border border-gray-200/50 hover:border-gray-300 transition-all cursor-pointer backdrop-blur-sm"
-          />
-        ))}
-      </div>
+      {/* Thumbnails in a single horizontal line */}
+      {product?.product_images?.length > 1 && (
+        <div className="flex gap-3">
+          {product.product_images.slice(1).map((image, index) => {
+            const totalThumbnails = product.product_images.slice(1).length;
+            
+            // Calculate width based on number of thumbnails
+            let widthClass = 'flex-1';
+            if (totalThumbnails === 1) {
+              widthClass = 'w-full';
+            } else if (totalThumbnails === 2) {
+              widthClass = 'w-1/2';
+            } else if (totalThumbnails === 3) {
+              widthClass = 'w-1/3';
+            } else {
+              widthClass = 'w-1/4';
+            }
+            
+            return (
+              <div
+                key={image.id || index}
+                className={`relative aspect-square ${widthClass} rounded-xl bg-gradient-to-br from-gray-100/50 to-gray-200/50 border border-gray-200/50 hover:border-gray-300 transition-all cursor-pointer backdrop-blur-sm overflow-hidden group`}
+              >
+                <Image
+                  src={image.image_url}
+                  alt={image.alt_text || `${product?.name} thumbnail ${index + 1}`}
+                  fill
+                  className="object-cover transition-transform duration-300 group-hover:scale-110"
+                  sizes={`(max-width: 768px) ${100/totalThumbnails}vw, ${100/totalThumbnails}vw`}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
