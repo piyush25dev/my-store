@@ -6,7 +6,7 @@ export function V2RelatedProducts({ products }) {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="font-display text-2xl text-stone-900">
+        <h2 className="font-display text-2xl text-stone-900 font-semibold">
           You Might Also Like
         </h2>
         <p className="font-sans text-sm text-stone-400 mt-1">

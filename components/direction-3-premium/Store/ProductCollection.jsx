@@ -4,11 +4,8 @@
 import { ProductCard } from "./ProductCard";
 import { useState, useRef } from "react";
 import { 
-  Sparkles, 
-  Grid3x3, 
-  LayoutGrid
+  Sparkles
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
@@ -21,7 +18,6 @@ import {
 
 export function ProductCollection({ products, getProductLink }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const [viewMode, setViewMode] = useState("grid");
   const sectionRef = useRef(null);
   const itemsPerPage = 6;
   
@@ -34,7 +30,7 @@ export function ProductCollection({ products, getProductLink }) {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
     // Scroll to the section component
     if (sectionRef.current) {
-      const offset = 80; // Adjust this value for header offset
+      const offset = 80;
       const elementPosition = sectionRef.current.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
       
@@ -48,9 +44,7 @@ export function ProductCollection({ products, getProductLink }) {
   return (
     <section ref={sectionRef} className="mb-20 scroll-mt-20">
       <CollectionHeader 
-        count={products.length} 
-        viewMode={viewMode}
-        setViewMode={setViewMode}
+        count={products.length}
         currentPage={currentPage}
         totalPages={totalPages}
       />
@@ -61,11 +55,7 @@ export function ProductCollection({ products, getProductLink }) {
         </div>
       ) : (
         <>
-          <div className={`grid gap-6 ${
-            viewMode === "grid" 
-              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" 
-              : "grid-cols-1"
-          }`}>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {currentProducts.map((product, index) => (
               <div
                 key={product.id}
@@ -156,7 +146,7 @@ export function ProductCollection({ products, getProductLink }) {
   );
 }
 
-function CollectionHeader({ count, viewMode, setViewMode, currentPage, totalPages }) {
+function CollectionHeader({ count, currentPage, totalPages }) {
   return (
     <div className="mb-10">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -175,30 +165,6 @@ function CollectionHeader({ count, viewMode, setViewMode, currentPage, totalPage
         </div>
 
         <div className="flex items-center gap-3">
-          {/* View Toggle */}
-          <div className="hidden sm:flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`p-2 rounded-md transition-all ${
-                viewMode === "grid" 
-                  ? "bg-white shadow-sm text-gray-900" 
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <Grid3x3 className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`p-2 rounded-md transition-all ${
-                viewMode === "list" 
-                  ? "bg-white shadow-sm text-gray-900" 
-                  : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </button>
-          </div>
-
           {/* Product Count */}
           <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-full border border-blue-100/50">
             <Sparkles className="h-4 w-4 text-blue-500" />
