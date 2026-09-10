@@ -1,10 +1,10 @@
+// components/ProductCard.jsx
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Heart, Share2, Loader2, Copy, Check, Twitter, Linkedin, Mail, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -32,7 +32,6 @@ import {
 
 export function ProductCard({ product, getProductLink }) {
   const [userRole, setUserRole] = useState(null);
-  const [isImageLoading, setIsImageLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserRole = async () => {
@@ -56,46 +55,11 @@ export function ProductCard({ product, getProductLink }) {
 
   const shouldHideWishlist = userRole === 'creator' || userRole === 'admin';
 
-  if (isImageLoading) {
-    return (
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100/50">
-        {/* Image skeleton */}
-        <Skeleton className="w-full aspect-[4/3]" />
-        
-        {/* Content skeleton */}
-        <div className="p-5 space-y-4">
-          {/* Title skeleton */}
-          <div className="space-y-2">
-            <Skeleton className="h-5 w-3/4 rounded" />
-            <Skeleton className="h-4 w-full rounded" />
-            <Skeleton className="h-4 w-5/6 rounded" />
-          </div>
-          
-          {/* Price skeleton */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Skeleton className="h-6 w-24 rounded" />
-              <Skeleton className="h-4 w-20 rounded" />
-            </div>
-            <Skeleton className="h-6 w-16 rounded" />
-          </div>
-          
-          {/* Button skeleton */}
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-10 flex-1 rounded-lg" />
-            <Skeleton className="h-10 w-10 rounded-lg" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden border border-gray-100/50 hover:border-gray-200/80">
       <ProductCardImage 
         product={product} 
-        shouldHideWishlist={shouldHideWishlist}
-        onImageLoad={() => setIsImageLoading(false)}
+        shouldHideWishlist={shouldHideWishlist} 
       />
       
       <div className="p-5">
@@ -111,7 +75,7 @@ export function ProductCard({ product, getProductLink }) {
   );
 }
 
-function ProductCardImage({ product, shouldHideWishlist, onImageLoad }) {
+function ProductCardImage({ product, shouldHideWishlist }) {
   const router = useRouter();
   const { wishlist, add, remove, isInWishlist } = useWishlist();
   const [saving, setSaving] = useState(false);
@@ -121,12 +85,6 @@ function ProductCardImage({ product, shouldHideWishlist, onImageLoad }) {
   const wishlistEntry = wishlist.find(
     (item) => String(item.product_id) === String(product.id)
   );
-
-  const handleImageLoad = () => {
-    if (onImageLoad) {
-      onImageLoad();
-    }
-  };
 
   async function handleWishlistToggle(e) {
     e.preventDefault();
@@ -162,11 +120,10 @@ function ProductCardImage({ product, shouldHideWishlist, onImageLoad }) {
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          onLoadingComplete={handleImageLoad}
         />
 
         {/* Category Badge */}
-        <div className="absolute left-4 top-4 z-10">
+        <div className="absolute left-4 top-4">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-white bg-black/60 backdrop-blur-sm rounded-full">
             <Sparkles className="h-3 w-3" />
             {product.type}
@@ -174,7 +131,7 @@ function ProductCardImage({ product, shouldHideWishlist, onImageLoad }) {
         </div>
 
         {/* Stock Badge */}
-        <div className="absolute right-4 top-4 z-10">
+        <div className="absolute right-4 top-4">
           <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full backdrop-blur-sm ${
             product.in_stock 
               ? "bg-emerald-500/90 text-white" 
@@ -189,7 +146,7 @@ function ProductCardImage({ product, shouldHideWishlist, onImageLoad }) {
           <button
             onClick={handleWishlistToggle}
             disabled={saving}
-            className={`absolute right-4 bottom-4 p-2.5 rounded-full backdrop-blur-sm transition-all duration-300 z-10 ${
+            className={`absolute right-4 bottom-4 p-2.5 rounded-full backdrop-blur-sm transition-all duration-300 ${
               saved 
                 ? "bg-rose-500 text-white scale-110" 
                 : "bg-white/90 text-gray-600 hover:bg-white hover:scale-110"
